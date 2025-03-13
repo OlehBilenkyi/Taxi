@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Аренда авто под такси — Варшава</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Montserrat", sans-serif;
+        background-color: #ffffff;
+        color: #333;
+        line-height: 1.5;
+      }
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+      ul {
+        list-style: none;
+      }
+      img {
+        display: block;
+        max-width: 100%;
+      }
+      :root {
+        --color-primary: #28a745; /* Зеленый (такси) */
+        --color-black: #000;
+        --color-white: #fff;
+        --color-grey: #f8f8f8;
+        --color-dark: #333;
+        --color-shadow: rgba(0, 0, 0, 0.1);
+      }
+      header {
+        width: 100%;
+        position: sticky;
+        top: 0;
+        z-index: 999;
+        background-color: var(--color-white);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+      .header-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 20px;
+      }
+      .logo {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--color-black);
+      }
+      .logo span {
+        color: var(--color-primary);
+      }
+      nav {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+      nav a {
+        font-weight: 500;
+        position: relative;
+        padding: 5px 0;
+      }
+      nav a::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -2px;
+        width: 0%;
+        height: 2px;
+        background-color: var(--color-primary);
+        transition: width 0.3s;
+      }
+      nav a:hover::after {
+        width: 100%;
+      }
+
+      .checkerboard-bar {
+        width: 100%;
+        height: 20px;
+        background-image: repeating-conic-gradient(
+          var(--color-black) 0% 25%,
+          var(--color-primary) 0% 50%
+        );
+        background-size: 20px 20px;
+      }
+      .hero {
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+          url("https://images.unsplash.com/photo-1655803242406-8e6d60dd521c?fm=jpg&q=80&w=1920")
+            center center / cover no-repeat;
+        color: #fff;
+        text-align: center;
+        position: relative;
+        min-height: 550px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-attachment: fixed; /* Параллакс-эффект фона на десктопе */
+      }
+      /* Полупрозрачный overlay */
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+      }
+      .hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 700px;
+        padding: 0 20px;
+      }
+      .hero-content h1 {
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        line-height: 1.2;
+      }
+      .hero-content p {
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+      }
+      .btn-hero {
+        display: inline-block;
+        background-color: var(--color-primary);
+        color: var(--color-white);
+        padding: 15px 30px;
+        border-radius: 5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: background-color 0.3s, transform 0.3s;
+      }
+      .btn-hero:hover {
+        background-color: #218838;
+        transform: translateY(-3px);
+      }
+      @media (max-width: 768px) {
+        .hero {
+          height: 60vh;
+          background-attachment: scroll; /* убираем фиксированность на мобилках */
+        }
+        .hero-content h1 {
+          font-size: 2rem;
+        }
+        .hero-content p {
+          font-size: 1rem;
+        }
+      }
+
+      /*************************************************************
+      ОБЩИЕ СТИЛИ ДЛЯ СЕКЦИЙ
+    *************************************************************/
+      .section {
+        padding: 60px 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .section h2 {
+        text-align: center;
+        font-size: 2rem;
+        margin-bottom: 40px;
+        position: relative;
+      }
+      .section h2::after {
+        content: "";
+        display: block;
+        width: 80px;
+        height: 3px;
+        background: var(--color-primary);
+        margin: 10px auto 0 auto;
+      }
+
+      /*************************************************************
+      АВТОПАРК (СЕТКА КАРТОЧЕК)
+    *************************************************************/
+      .autopark-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      }
+      .car-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px var(--color-shadow);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+      .car-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+      .car-image {
+        width: 100%;
+        height: 180px;
+        margin-bottom: 15px;
+        overflow: hidden;
+        border-radius: 5px;
+      }
+      .car-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s;
+      }
+      .car-card:hover .car-image img {
+        transform: scale(1.05);
+      }
+      .car-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+      }
+      .car-price {
+        font-weight: 500;
+        color: var(--color-primary);
+        margin-bottom: 10px;
+      }
+      .car-details {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 20px;
+        line-height: 1.4;
+      }
+      .car-actions {
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .btn-rent {
+        background: var(--color-primary);
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-weight: 600;
+        transition: background 0.3s, transform 0.3s;
+      }
+      .btn-rent:hover {
+        background: #218838;
+        transform: translateY(-3px);
+      }
+
+      /*************************************************************
+      КОНТАКТЫ + КАРТА (меньшая карта справа)
+    *************************************************************/
+      .contacts-map-section {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 40px;
+        align-items: flex-start;
+      }
+      .contacts {
+        flex: 1 1 300px;
+      }
+      .map-container {
+        flex: 1 1 300px;
+        position: relative;
+        min-height: 350px; /* карта поменьше */
+        background-image: url(./Screenshot_10.png);
+      }
+      #map {
+        width: 100%;
+        height: 100%;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px var(--color-shadow);
+      }
+      .moving-car {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 9999;
+        transition: transform 1s linear;
+      }
+      .moving-car img {
+        width: 100%;
+        height: 100%;
+      }
+      @media (max-width: 992px) {
+        .contacts-map-section {
+          flex-direction: column;
+        }
+        .map-container {
+          order: 2;
+        }
+        .contacts {
+          order: 1;
+        }
+      }
+
+      /*************************************************************
+      СЕКЦИЯ ВИДЕО (YouTube)
+    *************************************************************/
+      .video-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+      .video-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 800px;
+        padding-bottom: 56.25%;
+        height: 0;
+        overflow: hidden;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px var(--color-shadow);
+      }
+      .video-wrapper iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      /*************************************************************
+      СЕКЦИЯ НОВОСТЕЙ
+    *************************************************************/
+      .news-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .news-item {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px var(--color-shadow);
+        padding: 20px;
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+      .news-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+      .news-item h3 {
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+      }
+      .news-item p {
+        margin-bottom: 10px;
+        line-height: 1.4;
+      }
+      .news-item small {
+        color: #777;
+      }
+
+      /*************************************************************
+      FOOTER + ШАШЕЧНАЯ ПОЛОСА
+    *************************************************************/
+      footer {
+        background: var(--color-grey);
+        text-align: center;
+        margin-top: 40px;
+      }
+      .footer-checkerboard-bar {
+        height: 20px;
+        background-image: repeating-conic-gradient(
+          var(--color-black) 0% 25%,
+          var(--color-primary) 0% 50%
+        );
+        background-size: 20px 20px;
+      }
+      .footer-content {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px 10px;
+      }
+      .footer-content p {
+        margin-bottom: 10px;
+        color: var(--color-dark);
+        font-weight: 500;
+      }
+      .social-links {
+        margin-bottom: 10px;
+      }
+      .social-links a {
+        display: inline-block;
+        color: var(--color-dark);
+        margin: 0 10px;
+        font-size: 1.4rem;
+        transition: color 0.3s;
+      }
+      .social-links a:hover {
+        color: var(--color-primary);
+      }
+
+      /*************************************************************
+      АНИМАЦИЯ ПОЯВЛЕНИЯ (Intersection Observer в JS)
+      - Здесь только базовый класс hidden/show
+    *************************************************************/
+      .hidden {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s, transform 0.6s;
+      }
+      .show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /*************************************************************
+      ДОПОЛНИТЕЛЬНЫЕ UTILITY-КЛАССЫ
+    *************************************************************/
+      .btn {
+        display: inline-block;
+        background-color: var(--color-primary);
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 4px;
+        font-weight: 600;
+        transition: background 0.3s, transform 0.3s;
+        text-align: center;
+      }
+      .btn:hover {
+        background: #218838;
+        transform: translateY(-3px);
+      }
+      .mb-20 {
+        margin-bottom: 20px;
+      }
+      .mb-40 {
+        margin-bottom: 40px;
+      }
+      .mt-20 {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header>
+      <div class="header-top">
+        <div class="logo">SHPAX <span>ARENDA</span></div>
+        <nav>
+          <a href="#hero">Главная</a>
+          <a href="#autopark">Автопарк</a>
+          <a href="#contacts-map">Карта</a>
+          <a href="#video">Видео</a>
+          <a href="#news">Новости</a>
+          <a href="#footer">Контакты</a>
+        </nav>
+      </div>
+      <div class="checkerboard-bar"></div>
+    </header>
+
+    <!-- HERO (главная секция) -->
+    <section class="hero" id="hero">
+      <div class="hero-content">
+        <h1>Аренда авто</h1>
+        <p>Варшава. Современные машины под такси — стартуй быстро!</p>
+        <a href="#autopark" class="btn-hero">Выбрать автомобиль</a>
+      </div>
+    </section>
+
+    <!-- АВТОПАРК -->
+    <section class="section" id="autopark">
+      <h2>Автопарк</h2>
+      <div class="autopark-grid">
+        <!-- Пример карточек -->
+        <div class="car-card">
+          <div class="car-image">
+            <img src="./Без названия.jfif" alt="Toyota Prius III" />
+          </div>
+          <div class="car-title">Toyota Prius III (2009-2012)</div>
+          <div class="car-price">от 750 злотых/неделя</div>
+          <div class="car-details">
+            С возможностью покупки в рассрочку на один год
+          </div>
+          <div class="car-actions">
+            <span>Гибрид/Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Renault+Logan"
+              alt="Renault Logan"
+            />
+          </div>
+          <div class="car-title">Рено Логан</div>
+          <div class="car-price">от 350 злотых/неделя</div>
+          <div class="car-details">Надежный седан для городских поездок</div>
+          <div class="car-actions">
+            <span>Газ/Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Toyota+Corolla"
+              alt="Toyota Corolla"
+            />
+          </div>
+          <div class="car-title">Toyota Corolla (2019-2022)</div>
+          <div class="car-price">от 500 злотых/неделя</div>
+          <div class="car-details">
+            Стоимость аренды 700 злотых/неделя, но скидка при долгосрочной
+            аренде
+          </div>
+          <div class="car-actions">
+            <span>Гибрид/Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+        <!-- Добавьте свои карточки по аналогии... -->
+      </div>
+    </section>
+
+    <!-- КОНТАКТЫ + КАРТА -->
+    <section class="section" id="contacts-map">
+      <div class="contacts-map-section">
+        <div class="contacts">
+          <h2>Контакты</h2>
+          <p>Телефон: +48 123 456 789</p>
+          <p>Email: info@shpax-arenda.pl</p>
+          <p>Адрес: ул. Примерная, 10, Варшава</p>
+          <p>График работы: Пн–Пт с 9:00 до 18:00</p>
+          <p class="mt-20">
+            Оставьте заявку, и мы свяжемся с вами в ближайшее время.
+          </p>
+          <button class="btn mt-20">Связаться</button>
+        </div>
+        <div class="map-container">
+          <div class="moving-car" id="movingCar">
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/2967/2967350.png"
+              alt="Car Icon"
+            />
+          </div>
+          <div id="map"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ВИДЕО (YouTube) -->
+    <section class="section video-section" id="video">
+      <h2>Видео</h2>
+      <p>Посмотрите наш обзор сервиса и машин:</p>
+      <div class="video-wrapper">
+        <iframe
+          src="https://www.youtube.com/embed/Ts4vw0FcTjQ?start=938"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+        ></iframe>
+      </div>
+    </section>
+
+    <!-- НОВОСТИ -->
+    <section class="section" id="news">
+      <h2>Новости</h2>
+      <div class="news-list">
+        <div class="news-item">
+          <h3>Новое авто в наличии!</h3>
+          <p>
+            В нашем автопарке появилось новое авто: Tesla Model S 2025 года.
+            Отличный вариант для тех, кто хочет работать на электромобиле!
+          </p>
+          <small>01.03.2025</small>
+        </div>
+        <div class="news-item">
+          <h3>Снижена цена на аренду Toyota Corolla</h3>
+          <p>
+            Теперь аренда популярной Toyota Corolla стала еще доступнее. Спешите
+            воспользоваться предложением!
+          </p>
+          <small>25.02.2025</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="footer">
+      <!-- Шашечная полоса (footer) -->
+      <div class="footer-checkerboard-bar"></div>
+      <div class="footer-content">
+        <p>Свяжитесь с нами: +48 123 456 789 | info@shpax-arenda.pl</p>
+        <div class="social-links">
+          <a href="https://t.me/SHPAX_ARENDA" target="_blank" rel="noopener">
+            <i class="fab fa-telegram-plane"></i>
+          </a>
+          <a
+            href="https://www.instagram.com/nikitashpakovski?igsh=ZHBiOWRyMHZsMTkz"
+            target="_blank"
+            rel="noopener"
+          >
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a
+            href="https://www.youtube.com/@Shpakovskyi"
+            target="_blank"
+            rel="noopener"
+          >
+            <i class="fab fa-youtube"></i>
+          </a>
+        </div>
+        <p>&copy; 2025 Аренда авто под такси в Варшаве. Все права защищены.</p>
+      </div>
+    </footer>
+
+    <!-- JS: Leaflet, карта, анимация машинки -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+      /*************************************************************
+      1. Инициализация карты (Leaflet)
+    *************************************************************/
+      const map = L.map("map").setView([52.2297, 21.0122], 13);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap contributors",
+      }).addTo(map);
+
+      // Пример маркеров
+      L.marker([52.2297, 21.0022]).addTo(map).bindPopup("Офис аренды 1");
+      L.marker([52.2197, 21.0222]).addTo(map).bindPopup("Офис аренды 2");
+
+      /*************************************************************
+      2. Анимация движения машинки по карте (более наглядно)
+    *************************************************************/
+      const movingCar = document.getElementById("movingCar");
+      // Задаем набор координат для маршрута
+      const routeCoords = [
+        [52.2297, 21.0122],
+        [52.228, 21.015],
+        [52.227, 21.018],
+        [52.226, 21.0195],
+        [52.2255, 21.02],
+        [52.225, 21.021],
+        [52.2245, 21.022],
+        [52.224, 21.023],
+        [52.2235, 21.024],
+      ];
+      // Прорисовываем линию маршрута (polyline)
+      const routeLine = L.polyline(routeCoords, {
+        color: "red",
+        weight: 3,
+      }).addTo(map);
+
+      let routeIndex = 0;
+      function moveCar() {
+        if (routeIndex >= routeCoords.length) {
+          routeIndex = 0; // зацикливаем
+        }
+        const [lat, lng] = routeCoords[routeIndex];
+        // Преобразуем геокоординаты в координаты контейнера
+        const point = map.latLngToContainerPoint([lat, lng]);
+        // Перемещаем иконку
+        movingCar.style.transform = `translate(${point.x}px, ${point.y}px)`;
+        routeIndex++;
+      }
+      // Каждые 2 секунды машина сдвигается на следующую точку
+      setInterval(moveCar, 2000);
+
+      // При изменении масштаба / перетаскивании карты обновляем позицию машинки
+      map.on("move zoom", () => {
+        if (routeIndex > 0) {
+          const [lat, lng] = routeCoords[routeIndex - 1];
+          const point = map.latLngToContainerPoint([lat, lng]);
+          movingCar.style.transform = `translate(${point.x}px, ${point.y}px)`;
+        }
+      });
+
+      /*************************************************************
+      3. Intersection Observer (плавное появление секций)
+    *************************************************************/
+      const sections = document.querySelectorAll(".section");
+      const options = { threshold: 0.1 };
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("show");
+          }
+        });
+      }, options);
+      sections.forEach((sec) => {
+        sec.classList.add("hidden");
+        io.observe(sec);
+      });
+    </script>
+  </body>
+</html>
