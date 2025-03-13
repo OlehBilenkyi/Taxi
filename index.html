@@ -45,7 +45,7 @@
         max-width: 100%;
       }
       :root {
-        --color-primary: #28a745; /* Зеленый (такси) */
+        --color-primary: #28a745;
         --color-black: #000;
         --color-white: #fff;
         --color-grey: #f8f8f8;
@@ -97,7 +97,6 @@
       nav a:hover::after {
         width: 100%;
       }
-
       .checkerboard-bar {
         width: 100%;
         height: 20px;
@@ -119,9 +118,8 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        background-attachment: fixed; /* Параллакс-эффект фона на десктопе */
+        background-attachment: fixed;
       }
-      /* Полупрозрачный overlay */
       .hero::before {
         content: "";
         position: absolute;
@@ -163,7 +161,7 @@
       @media (max-width: 768px) {
         .hero {
           height: 60vh;
-          background-attachment: scroll; /* убираем фиксированность на мобилках */
+          background-attachment: scroll;
         }
         .hero-content h1 {
           font-size: 2rem;
@@ -172,10 +170,6 @@
           font-size: 1rem;
         }
       }
-
-      /*************************************************************
-      ОБЩИЕ СТИЛИ ДЛЯ СЕКЦИЙ
-    *************************************************************/
       .section {
         padding: 60px 20px;
         max-width: 1200px;
@@ -195,10 +189,6 @@
         background: var(--color-primary);
         margin: 10px auto 0 auto;
       }
-
-      /*************************************************************
-      АВТОПАРК (СЕТКА КАРТОЧЕК)
-    *************************************************************/
       .autopark-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -267,10 +257,6 @@
         background: #218838;
         transform: translateY(-3px);
       }
-
-      /*************************************************************
-      КОНТАКТЫ + КАРТА (меньшая карта справа)
-    *************************************************************/
       .contacts-map-section {
         display: flex;
         flex-wrap: wrap;
@@ -283,7 +269,7 @@
       .map-container {
         flex: 1 1 300px;
         position: relative;
-        min-height: 350px; /* карта поменьше */
+        min-height: 350px;
         background-image: url(./Screenshot_10.png);
       }
       #map {
@@ -316,10 +302,6 @@
           order: 1;
         }
       }
-
-      /*************************************************************
-      СЕКЦИЯ ВИДЕО (YouTube)
-    *************************************************************/
       .video-section {
         display: flex;
         flex-direction: column;
@@ -343,10 +325,6 @@
         width: 100%;
         height: 100%;
       }
-
-      /*************************************************************
-      СЕКЦИЯ НОВОСТЕЙ
-    *************************************************************/
       .news-list {
         display: grid;
         grid-template-columns: 1fr;
@@ -376,10 +354,6 @@
       .news-item small {
         color: #777;
       }
-
-      /*************************************************************
-      FOOTER + ШАШЕЧНАЯ ПОЛОСА
-    *************************************************************/
       footer {
         background: var(--color-grey);
         text-align: center;
@@ -416,11 +390,6 @@
       .social-links a:hover {
         color: var(--color-primary);
       }
-
-      /*************************************************************
-      АНИМАЦИЯ ПОЯВЛЕНИЯ (Intersection Observer в JS)
-      - Здесь только базовый класс hidden/show
-    *************************************************************/
       .hidden {
         opacity: 0;
         transform: translateY(20px);
@@ -430,10 +399,6 @@
         opacity: 1;
         transform: translateY(0);
       }
-
-      /*************************************************************
-      ДОПОЛНИТЕЛЬНЫЕ UTILITY-КЛАССЫ
-    *************************************************************/
       .btn {
         display: inline-block;
         background-color: var(--color-primary);
@@ -461,17 +426,15 @@
   </head>
   <body>
     <header>
-      <div class="header-top">
-        <div class="logo">SHPAX <span>ARENDA</span></div>
-        <nav>
-          <a href="#hero">Главная</a>
-          <a href="#autopark">Автопарк</a>
-          <a href="#contacts-map">Карта</a>
-          <a href="#video">Видео</a>
-          <a href="#news">Новости</a>
-          <a href="#footer">Контакты</a>
-        </nav>
-      </div>
+      <div class="logo">SHPAX <span>ARENDA</span></div>
+      <nav>
+        <a href="#hero">Главная</a>
+        <a href="#autopark">Автопарк</a>
+        <a href="#contacts-map">Карта</a>
+        <a href="#video">Видео</a>
+        <a href="#news">Новости</a>
+        <a href="#footer">Контакты</a>
+      </nav>
       <div class="checkerboard-bar"></div>
     </header>
 
@@ -536,33 +499,325 @@
             <button class="btn-rent">Арендовать</button>
           </div>
         </div>
-        <!-- Добавьте свои карточки по аналогии... -->
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Nissan+Leaf"
+              alt="Nissan Leaf"
+            />
+          </div>
+          <div class="car-title">Nissan Leaf (2020)</div>
+          <div class="car-price">от 600 злотых/неделя</div>
+          <div class="car-details">
+            Экологичный электромобиль с нулевым выбросом CO₂
+          </div>
+          <div class="car-actions">
+            <span>Электрический</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=BMW+3+Series"
+              alt="BMW 3 Series"
+            />
+          </div>
+          <div class="car-title">BMW 3 Series (2018-2021)</div>
+          <div class="car-price">от 950 злотых/неделя</div>
+          <div class="car-details">
+            Премиум комфорт и динамика на дорогах Варшавы
+          </div>
+          <div class="car-actions">
+            <span>Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Mercedes-Benz+C-Class"
+              alt="Mercedes-Benz C-Class"
+            />
+          </div>
+          <div class="car-title">Mercedes-Benz C-Class (2017-2020)</div>
+          <div class="car-price">от 1100 злотых/неделя</div>
+          <div class="car-details">Стильный седан для деловых поездок</div>
+          <div class="car-actions">
+            <span>Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Volkswagen+Golf"
+              alt="Volkswagen Golf"
+            />
+          </div>
+          <div class="car-title">Volkswagen Golf (2015-2018)</div>
+          <div class="car-price">от 550 злотых/неделя</div>
+          <div class="car-details">
+            Идеальный выбор для городских поездок, экономичный и надежный
+          </div>
+          <div class="car-actions">
+            <span>Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Audi+A4"
+              alt="Audi A4"
+            />
+          </div>
+          <div class="car-title">Audi A4 (2016-2019)</div>
+          <div class="car-price">от 980 злотых/неделя</div>
+          <div class="car-details">
+            Современные технологии и безопасность в одном флаконе
+          </div>
+          <div class="car-actions">
+            <span>Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Fiat+500"
+              alt="Fiat 500"
+            />
+          </div>
+          <div class="car-title">Fiat 500 (2014-2017)</div>
+          <div class="car-price">от 400 злотых/неделя</div>
+          <div class="car-details">
+            Компактный и удобный для маневрирования по узким улицам
+          </div>
+          <div class="car-actions">
+            <span>Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Ford+Focus"
+              alt="Ford Focus"
+            />
+          </div>
+          <div class="car-title">Ford Focus (2018-2021)</div>
+          <div class="car-price">от 650 злотых/неделя</div>
+          <div class="car-details">Просторный и практичный семейный седан</div>
+          <div class="car-actions">
+            <span>Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+      </div>
+      <div class="autopark-grid">
+        <div class="car-card">
+          <div class="car-image">
+            <img src="./Без названия.jfif" alt="Toyota Prius III" />
+          </div>
+          <div class="car-title">Toyota Prius III (2009-2012)</div>
+          <div class="car-price">от 750 злотых/неделя</div>
+          <div class="car-details">
+            С возможностью покупки в рассрочку на один год
+          </div>
+          <div class="car-actions">
+            <span>Гибрид/Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Renault+Logan"
+              alt="Renault Logan"
+            />
+          </div>
+          <div class="car-title">Рено Логан</div>
+          <div class="car-price">от 350 злотых/неделя</div>
+          <div class="car-details">Надежный седан для городских поездок</div>
+          <div class="car-actions">
+            <span>Газ/Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Toyota+Corolla"
+              alt="Toyota Corolla"
+            />
+          </div>
+          <div class="car-title">Toyota Corolla (2019-2022)</div>
+          <div class="car-price">от 500 злотых/неделя</div>
+          <div class="car-details">
+            Стоимость аренды 700 злотых/неделя, но скидка при долгосрочной
+            аренде
+          </div>
+          <div class="car-actions">
+            <span>Гибрид/Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Nissan+Leaf"
+              alt="Nissan Leaf"
+            />
+          </div>
+          <div class="car-title">Nissan Leaf (2020)</div>
+          <div class="car-price">от 600 злотых/неделя</div>
+          <div class="car-details">
+            Экологичный электромобиль с нулевым выбросом CO₂
+          </div>
+          <div class="car-actions">
+            <span>Электрический</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=BMW+3+Series"
+              alt="BMW 3 Series"
+            />
+          </div>
+          <div class="car-title">BMW 3 Series (2018-2021)</div>
+          <div class="car-price">от 950 злотых/неделя</div>
+          <div class="car-details">
+            Премиум комфорт и динамика на дорогах Варшавы
+          </div>
+          <div class="car-actions">
+            <span>Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Mercedes-Benz+C-Class"
+              alt="Mercedes-Benz C-Class"
+            />
+          </div>
+          <div class="car-title">Mercedes-Benz C-Class (2017-2020)</div>
+          <div class="car-price">от 1100 злотых/неделя</div>
+          <div class="car-details">Стильный седан для деловых поездок</div>
+          <div class="car-actions">
+            <span>Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Volkswagen+Golf"
+              alt="Volkswagen Golf"
+            />
+          </div>
+          <div class="car-title">Volkswagen Golf (2015-2018)</div>
+          <div class="car-price">от 550 злотых/неделя</div>
+          <div class="car-details">
+            Идеальный выбор для городских поездок, экономичный и надежный
+          </div>
+          <div class="car-actions">
+            <span>Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Audi+A4"
+              alt="Audi A4"
+            />
+          </div>
+          <div class="car-title">Audi A4 (2016-2019)</div>
+          <div class="car-price">от 980 злотых/неделя</div>
+          <div class="car-details">
+            Современные технологии и безопасность в одном флаконе
+          </div>
+          <div class="car-actions">
+            <span>Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Fiat+500"
+              alt="Fiat 500"
+            />
+          </div>
+          <div class="car-title">Fiat 500 (2014-2017)</div>
+          <div class="car-price">от 400 злотых/неделя</div>
+          <div class="car-details">
+            Компактный и удобный для маневрирования по узким улицам
+          </div>
+          <div class="car-actions">
+            <span>Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
+
+        <div class="car-card">
+          <div class="car-image">
+            <img
+              src="https://via.placeholder.com/300x180?text=Ford+Focus"
+              alt="Ford Focus"
+            />
+          </div>
+          <div class="car-title">Ford Focus (2018-2021)</div>
+          <div class="car-price">от 650 злотых/неделя</div>
+          <div class="car-details">Просторный и практичный семейный седан</div>
+          <div class="car-actions">
+            <span>Бензин</span>
+            <button class="btn-rent">Арендовать</button>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- КОНТАКТЫ + КАРТА -->
     <section class="section" id="contacts-map">
-      <div class="contacts-map-section">
-        <div class="contacts">
-          <h2>Контакты</h2>
-          <p>Телефон: +48 123 456 789</p>
-          <p>Email: info@shpax-arenda.pl</p>
-          <p>Адрес: ул. Примерная, 10, Варшава</p>
-          <p>График работы: Пн–Пт с 9:00 до 18:00</p>
-          <p class="mt-20">
-            Оставьте заявку, и мы свяжемся с вами в ближайшее время.
-          </p>
-          <button class="btn mt-20">Связаться</button>
+      <div class="contacts">
+        <h2>Контакты</h2>
+        <p>Телефон: +48 123 456 789</p>
+        <p>Email: info@shpax-arenda.pl</p>
+        <p>Адрес: ул. Примерная, 10, Варшава</p>
+        <p>График работы: Пн–Пт с 9:00 до 18:00</p>
+        <p class="mt-20">
+          Оставьте заявку, и мы свяжемся с вами в ближайшее время.
+        </p>
+        <button class="btn mt-20">Связаться</button>
+      </div>
+      <div class="map-container">
+        <div class="moving-car" id="movingCar">
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/2967/2967350.png"
+            alt="Car Icon"
+          />
         </div>
-        <div class="map-container">
-          <div class="moving-car" id="movingCar">
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/2967/2967350.png"
-              alt="Car Icon"
-            />
-          </div>
-          <div id="map"></div>
-        </div>
+        <div id="map"></div>
       </div>
     </section>
 
@@ -605,31 +860,28 @@
 
     <!-- FOOTER -->
     <footer id="footer">
-      <!-- Шашечная полоса (footer) -->
       <div class="footer-checkerboard-bar"></div>
-      <div class="footer-content">
-        <p>Свяжитесь с нами: +48 123 456 789 | info@shpax-arenda.pl</p>
-        <div class="social-links">
-          <a href="https://t.me/SHPAX_ARENDA" target="_blank" rel="noopener">
-            <i class="fab fa-telegram-plane"></i>
-          </a>
-          <a
-            href="https://www.instagram.com/nikitashpakovski?igsh=ZHBiOWRyMHZsMTkz"
-            target="_blank"
-            rel="noopener"
-          >
-            <i class="fab fa-instagram"></i>
-          </a>
-          <a
-            href="https://www.youtube.com/@Shpakovskyi"
-            target="_blank"
-            rel="noopener"
-          >
-            <i class="fab fa-youtube"></i>
-          </a>
-        </div>
-        <p>&copy; 2025 Аренда авто под такси в Варшаве. Все права защищены.</p>
+      <p>Свяжитесь с нами: +48 123 456 789 | info@shpax-arenda.pl</p>
+      <div class="social-links">
+        <a href="https://t.me/SHPAX_ARENDA" target="_blank" rel="noopener">
+          <i class="fab fa-telegram-plane"></i>
+        </a>
+        <a
+          href="https://www.instagram.com/nikitashpakovski?igsh=ZHBiOWRyMHZsMTkz"
+          target="_blank"
+          rel="noopener"
+        >
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a
+          href="https://www.youtube.com/@Shpakovskyi"
+          target="_blank"
+          rel="noopener"
+        >
+          <i class="fab fa-youtube"></i>
+        </a>
       </div>
+      <p>&copy; 2025 Аренда авто под такси в Варшаве. Все права защищены.</p>
     </footer>
 
     <!-- JS: Leaflet, карта, анимация машинки -->
