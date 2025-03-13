@@ -17,7 +17,6 @@
       referrerpolicy="no-referrer"
     />
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-
     <style>
       * {
         margin: 0;
@@ -113,7 +112,7 @@
         color: #fff;
         text-align: center;
         position: relative;
-        min-height: 550px;
+        min-height: 300px;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -124,7 +123,7 @@
         content: "";
         position: absolute;
         inset: 0;
-        background: rgba(0, 0, 0, 0.4);
+        /* background: rgba(0, 0, 0, 0.4); */
       }
       .hero-content {
         position: relative;
@@ -354,42 +353,6 @@
       .news-item small {
         color: #777;
       }
-      footer {
-        background: var(--color-grey);
-        text-align: center;
-        margin-top: 40px;
-      }
-      .footer-checkerboard-bar {
-        height: 20px;
-        background-image: repeating-conic-gradient(
-          var(--color-black) 0% 25%,
-          var(--color-primary) 0% 50%
-        );
-        background-size: 20px 20px;
-      }
-      .footer-content {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px 10px;
-      }
-      .footer-content p {
-        margin-bottom: 10px;
-        color: var(--color-dark);
-        font-weight: 500;
-      }
-      .social-links {
-        margin-bottom: 10px;
-      }
-      .social-links a {
-        display: inline-block;
-        color: var(--color-dark);
-        margin: 0 10px;
-        font-size: 1.4rem;
-        transition: color 0.3s;
-      }
-      .social-links a:hover {
-        color: var(--color-primary);
-      }
       .hidden {
         opacity: 0;
         transform: translateY(20px);
@@ -434,6 +397,12 @@
         <a href="#video">Видео</a>
         <a href="#news">Новости</a>
         <a href="#footer">Контакты</a>
+        <!-- Ссылки на файлы и папки -->
+        <a href="admin/">Админка</a>
+        <a href="form/">Формы</a>
+        <a href="privacy_policy/">Политика</a>
+        <a href="regulamin/">Регламент</a>
+        <a href="index.html">Главная страница</a>
       </nav>
       <div class="checkerboard-bar"></div>
     </header>
@@ -797,30 +766,6 @@
       </div>
     </section>
 
-    <!-- КОНТАКТЫ + КАРТА -->
-    <section class="section" id="contacts-map">
-      <div class="contacts">
-        <h2>Контакты</h2>
-        <p>Телефон: +48 123 456 789</p>
-        <p>Email: info@shpax-arenda.pl</p>
-        <p>Адрес: ул. Примерная, 10, Варшава</p>
-        <p>График работы: Пн–Пт с 9:00 до 18:00</p>
-        <p class="mt-20">
-          Оставьте заявку, и мы свяжемся с вами в ближайшее время.
-        </p>
-        <button class="btn mt-20">Связаться</button>
-      </div>
-      <div class="map-container">
-        <div class="moving-car" id="movingCar">
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/2967/2967350.png"
-            alt="Car Icon"
-          />
-        </div>
-        <div id="map"></div>
-      </div>
-    </section>
-
     <!-- ВИДЕО (YouTube) -->
     <section class="section video-section" id="video">
       <h2>Видео</h2>
@@ -858,30 +803,77 @@
       </div>
     </section>
 
-    <!-- FOOTER -->
-    <footer id="footer">
-      <div class="footer-checkerboard-bar"></div>
-      <p>Свяжитесь с нами: +48 123 456 789 | info@shpax-arenda.pl</p>
-      <div class="social-links">
-        <a href="https://t.me/SHPAX_ARENDA" target="_blank" rel="noopener">
-          <i class="fab fa-telegram-plane"></i>
-        </a>
-        <a
-          href="https://www.instagram.com/nikitashpakovski?igsh=ZHBiOWRyMHZsMTkz"
-          target="_blank"
-          rel="noopener"
-        >
-          <i class="fab fa-instagram"></i>
-        </a>
-        <a
-          href="https://www.youtube.com/@Shpakovskyi"
-          target="_blank"
-          rel="noopener"
-        >
-          <i class="fab fa-youtube"></i>
-        </a>
+    <footer
+      style="
+        background-color: #f8f8f8;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+      "
+    >
+      <div style="flex: 1; max-width: 45%; text-align: left">
+        <p style="font-size: 1.2rem; margin-bottom: 10px">
+          Аренда авто под такси в Варшаве
+        </p>
+        <p style="font-size: 1rem; margin-bottom: 10px">
+          Свяжитесь с нами:
+          <a
+            href="tel:+48123456789"
+            style="color: #28a745; text-decoration: none"
+            >+48 123 456 789</a
+          >
+          |
+          <a
+            href="mailto:info@shpax-arenda.pl"
+            style="color: #28a745; text-decoration: none"
+            >info@shpax-arenda.pl</a
+          >
+        </p>
+        <p style="font-size: 0.9rem; color: #777">
+          &copy; 2025 Аренда авто под такси в Варшаве. Все права защищены.
+        </p>
       </div>
-      <p>&copy; 2025 Аренда авто под такси в Варшаве. Все права защищены.</p>
+      <div style="flex: 1; max-width: 45%; text-align: right">
+        <div
+          style="
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-bottom: 10px;
+          "
+        >
+          <a
+            href="https://t.me/SHPAX_ARENDA"
+            target="_blank"
+            rel="noopener"
+            style="color: #333; transition: 0.3s"
+          >
+            <i class="fab fa-telegram-plane" style="font-size: 1.5rem"></i>
+          </a>
+          <a
+            href="https://www.instagram.com/nikitashpakovski"
+            target="_blank"
+            rel="noopener"
+            style="color: #333; transition: 0.3s"
+          >
+            <i class="fab fa-instagram" style="font-size: 1.5rem"></i>
+          </a>
+          <a
+            href="https://www.youtube.com/@Shpakovskyi"
+            target="_blank"
+            rel="noopener"
+            style="color: #333; transition: 0.3s"
+          >
+            <i class="fab fa-youtube" style="font-size: 1.5rem"></i>
+          </a>
+        </div>
+        <p style="font-size: 1rem; margin-bottom: 10px">
+          Адрес: ул. Примерная, 10, Варшава<br />
+          График работы: Пн–Пт с 9:00 до 18:00
+        </p>
+      </div>
     </footer>
 
     <!-- JS: Leaflet, карта, анимация машинки -->
@@ -900,7 +892,7 @@
       L.marker([52.2197, 21.0222]).addTo(map).bindPopup("Офис аренды 2");
 
       /*************************************************************
-      2. Анимация движения машинки по карте (более наглядно)
+      2. Анимация движения машинки по каtop:  рте (более наглядно)
     *************************************************************/
       const movingCar = document.getElementById("movingCar");
       // Задаем набор координат для маршрута
