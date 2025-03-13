@@ -2,9 +2,16 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Административная панель - Управление Машинами</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
+      :root {
+        --color-primary: #28a745;
+        --color-danger: #dc3545;
+      }
+      * {
+        box-sizing: border-box;
+      }
       body {
         font-family: "Montserrat", sans-serif;
         background-color: #f8f8f8;
@@ -20,14 +27,20 @@
       header h1 {
         font-size: 1.8rem;
       }
-      .btn {
-        background-color: var(--color-primary, #28a745);
+      nav a.btn {
+        background-color: var(--color-primary);
         color: #fff;
         padding: 8px 16px;
         text-decoration: none;
         border-radius: 4px;
         border: none;
         cursor: pointer;
+      }
+      main {
+        display: block;
+      }
+      section {
+        margin-bottom: 40px;
       }
       table {
         width: 100%;
@@ -51,9 +64,6 @@
         max-width: 80px;
         height: auto;
       }
-      section {
-        margin-bottom: 40px;
-      }
       form {
         background: #fff;
         padding: 20px;
@@ -74,13 +84,25 @@
       form input[type="file"] {
         padding: 3px;
       }
-      form button {
+      form button.btn {
         margin-top: 15px;
+        background-color: var(--color-primary);
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
       }
-      .actions button {
+      .actions button.btn {
         margin-right: 5px;
         padding: 6px 12px;
         font-size: 0.9rem;
+        border: none;
+        cursor: pointer;
+      }
+      .actions button.btn.delete {
+        background-color: var(--color-danger);
+        color: #fff;
       }
     </style>
   </head>
@@ -91,99 +113,94 @@
         <a href="index.html" class="btn">Вернуться на сайт</a>
       </nav>
     </header>
+    <main>
+      <section>
+        <h2>Управление арендованными машинами</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Фото</th>
+              <th>Название</th>
+              <th>Описание</th>
+              <th>Цена</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Пример записи, данные будут динамически заменяться через БД -->
+            <tr>
+              <td>1</td>
+              <td>
+                <img src="./path/to/car-image.jpg" alt="Машина" />
+              </td>
+              <td>Toyota Prius III</td>
+              <td>С возможностью покупки в рассрочку на один год</td>
+              <td>750 злотых/неделя</td>
+              <td class="actions">
+                <button class="btn">Редактировать</button>
+                <button class="btn delete">Удалить</button>
+              </td>
+            </tr>
+            <!-- Дополнительные записи... -->
+          </tbody>
+        </table>
+      </section>
 
-    <section>
-      <h2>Управление арендованными машинами</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Фото</th>
-            <th>Название</th>
-            <th>Описание</th>
-            <th>Цена</th>
-            <th>Действия</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Пример записи, данные будут динамически заменяться через БД -->
-          <tr>
-            <td>1</td>
-            <td>
-              <img src="./path/to/car-image.jpg" alt="Машина" />
-            </td>
-            <td>Toyota Prius III</td>
-            <td>С возможностью покупки в рассрочку на один год</td>
-            <td>750 злотых/неделя</td>
-            <td class="actions">
-              <button class="btn">Редактировать</button>
-              <button class="btn" style="background-color: #dc3545">
-                Удалить
-              </button>
-            </td>
-          </tr>
-          <!-- Дополнительные записи... -->
-        </tbody>
-      </table>
-    </section>
+      <section>
+        <h2>Добавить новую машину</h2>
+        <form
+          id="addCarForm"
+          action="/admin/addCar"
+          method="post"
+          enctype="multipart/form-data"
+        >
+          <label for="carName">Название машины:</label>
+          <input
+            type="text"
+            id="carName"
+            name="carName"
+            placeholder="Введите название машины"
+            required
+          />
 
-    <section>
-      <h2>Добавить новую машину</h2>
-      <form
-        id="addCarForm"
-        action="/admin/addCar"
-        method="post"
-        enctype="multipart/form-data"
-      >
-        <label for="carName">Название машины:</label>
-        <input
-          type="text"
-          id="carName"
-          name="carName"
-          placeholder="Введите название машины"
-          required
-        />
+          <label for="carDescription">Описание:</label>
+          <textarea
+            id="carDescription"
+            name="carDescription"
+            rows="4"
+            placeholder="Введите описание"
+            required
+          ></textarea>
 
-        <label for="carDescription">Описание:</label>
-        <textarea
-          id="carDescription"
-          name="carDescription"
-          rows="4"
-          placeholder="Введите описание"
-          required
-        ></textarea>
+          <label for="carPrice">Цена аренды:</label>
+          <input
+            type="text"
+            id="carPrice"
+            name="carPrice"
+            placeholder="Например, 750 злотых/неделя"
+            required
+          />
 
-        <label for="carPrice">Цена аренды:</label>
-        <input
-          type="text"
-          id="carPrice"
-          name="carPrice"
-          placeholder="Например, 750 злотых/неделя"
-          required
-        />
+          <label for="carImage">Фото машины:</label>
+          <input
+            type="file"
+            id="carImage"
+            name="carImage"
+            accept="image/*"
+            required
+          />
 
-        <label for="carImage">Фото машины:</label>
-        <input
-          type="file"
-          id="carImage"
-          name="carImage"
-          accept="image/*"
-          required
-        />
-
-        <button type="submit" class="btn">Добавить машину</button>
-      </form>
-    </section>
-
-    <script>
-      // Пример обработчика формы. Далее необходимо подсоединить логику обработки и работы с БД.
-      document
-        .getElementById("addCarForm")
-        .addEventListener("submit", function (e) {
-          // Если нужна AJAX обработка, можно отменить стандартное поведение.
-          // e.preventDefault();
-          // TODO: Реализовать отправку данных через AJAX.
-        });
+          <button type="submit" class="btn">Добавить машину</button>
+        </form>
+      </section>
+    </main>
+    <script defer>
+      document.getElementById("addCarForm").addEventListener("submit", (e) => {
+        // Если нужна AJAX обработка, можно отменить стандартное поведение.
+        // e.preventDefault();
+        // TODO: Реализовать отправку данных через AJAX.
+      });
     </script>
   </body>
 </html>
