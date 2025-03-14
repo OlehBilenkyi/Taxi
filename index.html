@@ -16,7 +16,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
       referrerpolicy="no-referrer"
     />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <!-- <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" /> -->
     <style>/* Общие сбросы и базовые стили */
       * {
         margin: 0;
@@ -45,10 +45,13 @@
       }
       
       /* Тёмная тема для всей страницы */
-      body.dark-theme {
-        background-color: var(--color-tertiary);
-        color: var(--color-primary);
-      }
+      body {
+  margin: 0;
+  padding: 0;
+  background: url("./car.jpg") center/cover no-repeat fixed; 
+  /* fixed — чтобы при прокрутке картинка оставалась на месте */
+  color: #f8f8f8; /* текст по умолчанию */
+}
       
       /* Шапка и футер */
       body.dark-theme header,
@@ -207,29 +210,29 @@
       
       /* Герой */
       .hero {
-        min-height: 80vh;
-        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-          url("https://images.unsplash.com/photo-1655803242406-8e6d60dd521c?fm=jpg&q=80&w=1920")
-            center/cover no-repeat;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        background-attachment: fixed;
-        position: relative;
-        color: var(--color-primary);
-      }
-      .hero::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-      }
-      .hero-content {
-        position: relative;
-        z-index: 1;
-        max-width: 700px;
-        padding: 0 20px;
-      }
+  min-height: 80vh;
+  position: relative;
+  background: none; /* убираем фон-картинку из hero */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: #f8f8f8;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5));
+  z-index: 1;
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;
+  padding: 0 20px;
+  text-align: center;
+}
       .hero-content h1 {
         font-size: 3rem;
         margin-bottom: 20px;
@@ -287,6 +290,13 @@
       }
       
       /* Автопарк */
+      #autopark {
+  position: relative;
+  background: rgba(0, 0, 0, 0.2); /* или none, если хотите полностью прозрачный */
+  padding: 60px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
       .autopark-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -359,6 +369,7 @@
       
       /* Новости и отзывы */
       .news-reviews-section {
+        background-color: #1a1a1a;
         display: flex;
         flex-wrap: wrap;
         gap: 40px;
@@ -487,6 +498,7 @@
         transform: translateY(0);
       }
       .advantages-section {
+        background-color: #1a1a1a;
   padding: 60px 20px;
   max-width: 1200px;
   margin: 0 auto;
@@ -529,6 +541,10 @@
   line-height: 1.4;
   /* Чуть более светлый цвет для основного текста */
   color: #ccc;
+}
+
+.video-section{
+  background-color: #1a1a1a;
 }
 
       </style>
@@ -770,16 +786,7 @@
 </section>
 
 
-    <footer
-      style="
-        background-color: #f8f8f8;
-        padding: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-      "
-    >
+    <footer>
       <div style="flex: 1; max-width: 45%; text-align: left">
         <p style="font-size: 1.2rem; margin-bottom: 10px">
           Аренда авто под такси в Варшаве
@@ -894,3 +901,4 @@
     </script>
   </body>
 </html>
+<!-- njksvn -->
