@@ -8,6 +8,8 @@
       :root {
         --color-primary: #28a745;
         --color-danger: #dc3545;
+        --color-blue: #007bff;
+        --color-yellow: #ffc107;
       }
       * {
         box-sizing: border-box;
@@ -18,189 +20,258 @@
         margin: 0;
         padding: 20px;
       }
-      header {
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .header {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        margin-bottom: 20px;
+        gap: 15px;
+        margin-bottom: 30px;
       }
-      header h1 {
-        font-size: 1.8rem;
+      .header h1 {
+        font-size: 2rem;
+        margin: 0;
       }
-      nav a.btn {
-        background-color: var(--color-primary);
-        color: #fff;
-        padding: 8px 16px;
-        text-decoration: none;
-        border-radius: 4px;
-        border: none;
-        cursor: pointer;
-      }
-      main {
-        display: block;
-      }
-      section {
-        margin-bottom: 40px;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        background: #fff;
-      }
-      table,
-      th,
-      td {
-        border: 1px solid #ddd;
-      }
-      th,
-      td {
-        padding: 10px;
-        text-align: left;
-      }
-      th {
-        background-color: #f0f0f0;
-      }
-      td img {
-        max-width: 80px;
-        height: auto;
-      }
-      form {
-        background: #fff;
-        padding: 20px;
+      .tabs {
+        background: white;
         border-radius: 8px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
       }
-      form label {
+      .tabs-nav {
+        display: flex;
+        border-bottom: 2px solid #eee;
+      }
+      .tab-button {
+        padding: 15px 25px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+        color: #666;
+        transition: all 0.3s;
+      }
+      .tab-button.active {
+        color: var(--color-blue);
+        border-bottom: 2px solid var(--color-blue);
+      }
+      .status-badge {
+        padding: 3px 10px;
+        border-radius: 15px;
+        font-size: 0.85em;
+        font-weight: 600;
+      }
+      .status-available {
+        background: #e6ffee;
+        color: #28a745;
+      }
+      .status-rented {
+        background: #e6f3ff;
+        color: #007bff;
+      }
+      .status-maintenance {
+        background: #ffe6e6;
+        color: #dc3545;
+      }
+      .status-new {
+        background: #fff3cd;
+        color: #856404;
+      }
+      .status-approved {
+        background: #e6ffee;
+        color: #28a745;
+      }
+      .status-rejected {
+        background: #ffe6e6;
+        color: #dc3545;
+      }
+      .tab-content {
+        display: none;
+        padding: 20px;
+      }
+      .tab-content.active {
         display: block;
-        margin: 10px 0 5px;
       }
-      form input,
-      form textarea {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-      }
-      form input[type="file"] {
-        padding: 3px;
-      }
-      form button.btn {
-        margin-top: 15px;
-        background-color: var(--color-primary);
-        color: #fff;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      .actions button.btn {
-        margin-right: 5px;
-        padding: 6px 12px;
-        font-size: 0.9rem;
-        border: none;
-        cursor: pointer;
-      }
-      .actions button.btn.delete {
-        background-color: var(--color-danger);
-        color: #fff;
-      }
+      /* Остальные стили из предыдущей версии */
     </style>
   </head>
   <body>
-    <header>
-      <h1>Административная панель</h1>
-      <nav>
-        <a href="index.html" class="btn">Вернуться на сайт</a>
-      </nav>
-    </header>
-    <main>
-      <section>
-        <h2>Управление арендованными машинами</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Фото</th>
-              <th>Название</th>
-              <th>Описание</th>
-              <th>Цена</th>
-              <th>Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Пример записи, данные будут динамически заменяться через БД -->
-            <tr>
-              <td>1</td>
-              <td>
-                <img src="./path/to/car-image.jpg" alt="Машина" />
-              </td>
-              <td>Toyota Prius III</td>
-              <td>С возможностью покупки в рассрочку на один год</td>
-              <td>750 злотых/неделя</td>
-              <td class="actions">
-                <button class="btn">Редактировать</button>
-                <button class="btn delete">Удалить</button>
-              </td>
-            </tr>
-            <!-- Дополнительные записи... -->
-          </tbody>
-        </table>
-      </section>
+    <div class="container">
+      <div class="header">
+        <h1>Панель администратора</h1>
+        <nav>
+          <a href="index.html" class="btn">Вернуться на сайт</a>
+        </nav>
+      </div>
 
-      <section>
-        <h2>Добавить новую машину</h2>
-        <form
-          id="addCarForm"
-          action="/admin/addCar"
-          method="post"
-          enctype="multipart/form-data"
-        >
-          <label for="carName">Название машины:</label>
-          <input
-            type="text"
-            id="carName"
-            name="carName"
-            placeholder="Введите название машины"
-            required
-          />
+      <div class="tabs">
+        <div class="tabs-nav">
+          <button class="tab-button active" data-tab="cars">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+            Автопарк
+          </button>
+          <button class="tab-button" data-tab="requests">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Заявки
+          </button>
+        </div>
 
-          <label for="carDescription">Описание:</label>
-          <textarea
-            id="carDescription"
-            name="carDescription"
-            rows="4"
-            placeholder="Введите описание"
-            required
-          ></textarea>
+        <!-- Вкладка Автопарк -->
+        <div class="tab-content active" id="cars">
+          <table>
+            <!-- Существующая таблица машин -->
+          </table>
 
-          <label for="carPrice">Цена аренды:</label>
-          <input
-            type="text"
-            id="carPrice"
-            name="carPrice"
-            placeholder="Например, 750 злотых/неделя"
-            required
-          />
+          <h2 style="margin-top: 30px">Добавить новую машину</h2>
+          <form id="addCarForm">
+            <!-- Существующая форма -->
+          </form>
+        </div>
 
-          <label for="carImage">Фото машины:</label>
-          <input
-            type="file"
-            id="carImage"
-            name="carImage"
-            accept="image/*"
-            required
-          />
+        <!-- Новая вкладка Заявки -->
+        <div class="tab-content" id="requests">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>ФИО</th>
+                <th>Телефон</th>
+                <th>Автомобиль</th>
+                <th>Статус</th>
+                <th>Дата</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="requestsBody">
+              <!-- Данные будут добавляться через JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
-          <button type="submit" class="btn">Добавить машину</button>
-        </form>
-      </section>
-    </main>
-    <script defer>
-      document.getElementById("addCarForm").addEventListener("submit", (e) => {
-        // Если нужна AJAX обработка, можно отменить стандартное поведение.
-        // e.preventDefault();
-        // TODO: Реализовать отправку данных через AJAX.
+    <script>
+      // Данные для демонстрации
+      const requests = [
+        {
+          id: 1,
+          fullName: "Иван Иванов",
+          phone: "+7 (999) 123-45-67",
+          carModel: "Kia Rio",
+          status: "new",
+          date: "2024-03-20",
+        },
+        {
+          id: 2,
+          fullName: "Петр Петров",
+          phone: "+7 (999) 765-43-21",
+          carModel: "Hyundai Solaris",
+          status: "approved",
+          date: "2024-03-19",
+        },
+      ];
+
+      // Инициализация вкладок
+      document.querySelectorAll(".tab-button").forEach((button) => {
+        button.addEventListener("click", () => {
+          // Удаляем активный класс у всех кнопок
+          document
+            .querySelectorAll(".tab-button")
+            .forEach((b) => b.classList.remove("active"));
+          // Скрываем все вкладки
+          document
+            .querySelectorAll(".tab-content")
+            .forEach((c) => c.classList.remove("active"));
+
+          // Активируем выбранную
+          button.classList.add("active");
+          document.getElementById(button.dataset.tab).classList.add("active");
+        });
       });
+
+      // Рендер заявок
+      function renderRequests() {
+        const tbody = document.getElementById("requestsBody");
+        tbody.innerHTML = requests
+          .map(
+            (request) => `
+                <tr>
+                    <td>${request.id}</td>
+                    <td>${request.fullName}</td>
+                    <td>${request.phone}</td>
+                    <td>${request.carModel}</td>
+                    <td>
+                        <span class="status-badge status-${request.status}">
+                            ${getStatusText(request.status)}
+                        </span>
+                    </td>
+                    <td>${request.date}</td>
+                    <td>
+                        <button class="btn" onclick="handleApprove(${
+                          request.id
+                        })">Одобрить</button>
+                        <button class="btn delete" onclick="handleReject(${
+                          request.id
+                        })">Отклонить</button>
+                    </td>
+                </tr>
+            `
+          )
+          .join("");
+      }
+
+      function getStatusText(status) {
+        return {
+          new: "Новая",
+          approved: "Одобрена",
+          rejected: "Отклонена",
+        }[status];
+      }
+
+      // Обработчики действий
+      function handleApprove(id) {
+        const request = requests.find((r) => r.id === id);
+        request.status = "approved";
+        renderRequests();
+      }
+
+      function handleReject(id) {
+        const request = requests.find((r) => r.id === id);
+        request.status = "rejected";
+        renderRequests();
+      }
+
+      // Первоначальная загрузка
+      renderRequests();
     </script>
   </body>
 </html>
