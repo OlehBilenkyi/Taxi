@@ -1,0 +1,26 @@
+{
+  "name": "admin_panel",
+  "version": "1.0.0",
+  "description": "Admin panel for managing taxi rental services",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "build": "echo 'Building project...'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "admin",
+    "panel",
+    "taxi",
+    "dashboard"
+  ],
+  "author": "Oleh Bilenkyi",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}
