@@ -1,3 +1,73 @@
+<?php
+session_start();
+
+// Настройки ошибок
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Подключение БД
+include($_SERVER['DOCUMENT_ROOT'] . '/config/config.php');
+
+// Функция для безопасного получения изображений
+// Функция для безопасного получения изображения
+function getCarImage($imagesJson, $defaultImage = '/uploads_img/default-car.jpg') {
+    $images = json_decode($imagesJson, true); // Декодируем JSON
+    
+    if (!empty($images) && is_array($images)) {
+        $imagePath = '/' . ltrim($images[0], '/'); // Берем первый путь
+
+        return htmlspecialchars($imagePath, ENT_QUOTES, 'UTF-8'); // Защита от XSS
+    }
+
+    return $defaultImage;
+}
+
+
+
+try {
+    // Подготовленный запрос
+    $stmt = $pdo->query("
+        SELECT 
+            id,
+            name,
+            description,
+            version,
+            rental_price,
+            deposit_price,
+            images,
+            created_at,
+            updated_at
+        FROM cars_rental
+        ORDER BY created_at DESC
+    ");
+    
+    $cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Обработка данных
+   // Обработка данных
+foreach ($cars as &$car) {
+    // Обрабатываем только одно изображение (первое)
+    $car['main_image'] = getCarImage($car['images'] ?? '[]');
+
+    // Форматируем цены
+    $car['rental_price'] = number_format($car['rental_price'], 0, '', ' ');
+    $car['deposit_price'] = number_format($car['deposit_price'], 0, '', ' ');
+    
+    // Проверка на наличие 'created_at' и 'updated_at', чтобы избежать ошибок
+    $car['created_at'] = isset($car['created_at']) ? htmlspecialchars($car['created_at']) : 'Не указано';
+    $car['updated_at'] = isset($car['updated_at']) ? htmlspecialchars($car['updated_at']) : 'Не указано';
+}
+
+} catch (PDOException $e) {
+    error_log("Database error: " . $e->getMessage());
+    die("Ошибка базы данных. Пожалуйста, попробуйте позже.");
+} catch (Throwable $e) {
+    error_log("General error: " . $e->getMessage());
+    die("Произошла ошибка. Мы уже работаем над её устранением.");
+}
+?>
+
 <!DOCTYPE html>
 <html lang="ru">
   <head>
@@ -16,8 +86,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
       referrerpolicy="no-referrer"
     />
-    <!-- <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" /> -->
-    <style>/* Общие сбросы и базовые стили */
+    <style>
       * {
         font-family: Anton;
         margin: 0;
@@ -34,7 +103,7 @@
       a {
         text-decoration: none;
       }
-      
+
       /* CSS-переменные */
       :root {
         --color-primary: #f8f8f8; /* Изменён для лучшей читаемости на темном фоне */
@@ -47,22 +116,21 @@
         --color-accent: #e74c3c;
         --transition: all 0.3s ease;
       }
-      
-      /* Тёмная тема для всей страницы */
+
       body {
   margin: 0;
   padding: 0;
-  background: url("./car.jpg") center/cover no-repeat fixed; 
+  background: url("./Flux_Dev_____Mercedes_EClass_______TAXI____________TAXI________1.jpeg") center/cover no-repeat fixed;
   /* fixed — чтобы при прокрутке картинка оставалась на месте */
   color: #f8f8f8; /* текст по умолчанию */
 }
-      
+
       /* Шапка и футер */
       body.dark-theme header,
       body.dark-theme footer {
         background-color: #2b2b2b;
       }
-      
+
       /* Навигация */
       body.dark-theme .nav-link {
         color: var(--color-primary);
@@ -70,7 +138,7 @@
       body.dark-theme .nav-link:hover {
         color: var(--color-secondary);
       }
-      
+
       /* Кнопки */
       body.dark-theme .btn,
       body.dark-theme .btn-hero,
@@ -83,7 +151,7 @@
       body.dark-theme .btn-rent:hover {
         background-color: #2e9a0a;
       }
-      
+
       /* Header */
       header {
         position: fixed;
@@ -116,7 +184,7 @@
       .logo .logo-accent {
         color: var(--color-secondary);
       }
-      
+
       /* Навигация */
       .nav-links {
         font-size: 19px;
@@ -145,11 +213,10 @@
       .nav-link:hover::after {
         width: 100%;
       }
-      
+
       /* Dropdown */
       .dropdown {
         position: relative;
-
         display: inline-block;
       }
       .dropbtn {
@@ -187,7 +254,7 @@
       .dropdown:hover .dropdown-content {
         display: block;
       }
-      
+
       /* Mobile menu */
       .mobile-menu-btn {
         display: none;
@@ -215,12 +282,12 @@
           font-size: 1.5rem;
         }
       }
-      
+
       .main-container {
         max-width: 1200px;
         margin: 0 auto;
       }
-      
+
       .hero {
         min-height: 80vh;
         position: relative;
@@ -284,7 +351,7 @@
           font-size: 1rem;
         }
       }
-      
+
       /* Секции */
       .section {
         padding: 60px 20px;
@@ -295,12 +362,10 @@
         position: relative;
       }
 
-
       .carH2 {
         padding: 60px 0 20px;
       }
-     
-      
+
       /* Автопарк */
       #autopark {
         position: relative;
@@ -375,7 +440,7 @@
         background-color: #2e9a0a;
         transform: translateY(-3px);
       }
-      
+
       /* Новости и отзывы */
       .news-reviews-section {
         background-color: #1a1a1a;
@@ -420,7 +485,7 @@
       .review-item small {
         color: #777;
       }
-      
+
       /* Видео */
       .video-section {
         padding: 4rem 0;
@@ -434,7 +499,6 @@
         overflow: hidden;
         box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.7);
       }
-
 
       /* ВАЖНО: iframe внутри .video-wrapper должен занимать всё пространство */
       .video-wrapper iframe {
@@ -477,7 +541,7 @@
           max-width: 600px;
         }
       }
-      
+
       /* Футер */
       footer {
         background-color: #2b2b2b;
@@ -508,7 +572,7 @@
         gap: 15px;
         margin-bottom: 10px;
       }
-      
+
       /* Анимация появления секций */
       .hidden {
         opacity: 0;
@@ -544,7 +608,7 @@
       .advantage-card h3 {
         font-size: 1.2rem;
         margin-bottom: 10px;
-      
+
         color: #f8f8f8;
       }
 
@@ -552,7 +616,7 @@
         font-size: 1rem;
         margin-bottom: 10px;
         line-height: 1.4;
-      
+
         color: #ccc;
       }
 
@@ -564,7 +628,7 @@
   position: fixed;       /* фиксируем в окне */
   bottom: 140px;          /* отступ снизу */
   right: 40px;           /* отступ справа */
-  background-color: #a6f68c; /* брендовый цвет Telegram или любой другой */
+  background-color: #3fd10f; /* брендовый цвет Telegram или любой другой */
   color: #fff;
   padding: 5px;
   border-radius: 50%;    /* скругляем, чтобы получился круг */
@@ -580,30 +644,28 @@
   background-color: #007ab8; /* эффект при наведении */
 }
 
-
-</style>
-    
-  </head>
-  <body class="dark-theme">
+      </style>
+     </head>
+ <body class="dark-theme">
     <header class="header">
       <div class="header-container">
         <div class="logo">
           <span class="logo-primary">SHPAX</span>
           <span class="logo-accent">ARENDA</span>
         </div>
-        
+
         <nav class="nav-menu">
           <div class="nav-links">
             <a href="#hero" class="nav-link">Главная</a>
             <a href="#autopark" class="nav-link">Автопарк</a>
-            <a href="#contacts-map" class="nav-link">Карта</a>
-            <a href="#video" class="nav-link">Видео</a>
             <a href="#news" class="nav-link">Новости</a>
+            <a href="#video" class="nav-link">Видео</a>
+
             <a href="#footer" class="nav-link">Контакты</a>
             <div class="dropdown">
               <button class="dropbtn">Документы ▼</button>
               <div class="dropdown-content">
-                <a href="admin/">Админка</a>
+                <a href="admin/dashboard.php">Админка</a>
                 <a href="form/">Формы</a>
                 <a href="privacy_policy/">Политика</a>
                 <a href="regulamin/">Регламент</a>
@@ -612,7 +674,7 @@
             </div>
           </div>
         </nav>
-        
+
         <div class="mobile-menu-btn">
           <span></span>
           <span></span>
@@ -626,9 +688,9 @@
       <div class="hero-content">
         <h1>Аренда авто Варшава</h1>
         <p>
-          Зарабатывайте от 
+          Зарабатывайте от
           <span class="highlight">6 000</span>
-          до 
+          до
           <span class="highlight">8 000</span>
           zl<br> в месяц на работе в такси
         </p>
@@ -644,7 +706,6 @@
           <h3>Даем лучшие условия на рынке</h3>
           <p>Нет залога и депозита на старте</p>
           <p>Моментальный вывод, комиссия – 0,6%</p>
-          
         </div>
         <div class="advantage-card">
           <h3>С нами выгодно</h3>
@@ -663,90 +724,36 @@
             Решаем споры с поддержкой Яндекса – мы отстаиваем позицию водителя
           </p>
         </div>
-      
       </div>
       <h2 class="carH2">Автопарк</h2>
     </section>
 
-    <!-- Автопарк -->
-    <section class="section" id="autopark">
-      
-      <div class="autopark-grid">
-        <div class="car-card">
-          <div class="car-image">
-            <img src="./Без названия.jfif" alt="Toyota Prius III" />
-          </div>
-          <div class="car-title">Toyota Prius III (2009-2012)</div>
-          <div class="car-price">от 750 злотых/неделя</div>
-          <div class="car-details">
-            С возможностью покупки в рассрочку на один год
-          </div>
-          <div class="car-actions">
-            <span>Гибрид/Бензин</span>
-            <button class="btn-rent">Арендовать</button>
-          </div>
+<!-- Выводим данные о машинах -->
+<section class="section" id="autopark">
+    <div class="autopark-grid">
+        <?php foreach ($cars as $car): ?>
+    <div class="car-card">
+        <div class="car-image">
+            <!-- Выводим изображение машины -->
+            <img src="<?= htmlspecialchars($car['main_image']) ?>" alt="<?= htmlspecialchars($car['name']) ?>">
         </div>
-
-        <div class="car-card">
-          <div class="car-image">
-            <img
-              src="https://via.placeholder.com/300x180?text=Renault+Logan"
-              alt="Renault Logan"
-            />
-          </div>
-          <div class="car-title">Рено Логан</div>
-          <div class="car-price">от 350 злотых/неделя</div>
-          <div class="car-details">Надежный седан для городских поездок</div>
-          <div class="car-actions">
-            <span>Газ/Бензин</span>
-            <button class="btn-rent">Арендовать</button>
-          </div>
+        <div class="car-title"><?= htmlspecialchars($car['name']) ?></div>
+        <div class="car-version"><?= htmlspecialchars($car['version']) ?></div>
+        <div class="car-price">от <?= htmlspecialchars($car['rental_price']) ?> злотых/неделя</div>
+        <div class="car-deposit">Залог: <?= htmlspecialchars($car['deposit_price']) ?> злотых</div>
+        <div class="car-description"><?= nl2br(htmlspecialchars($car['description'])) ?></div>
+        <div class="car-dates">
+            <div>Дата добавления: <?= htmlspecialchars($car['created_at']) ?></div>
+            <div>Последнее обновление: <?= htmlspecialchars($car['updated_at']) ?></div>
         </div>
-
-
-        <div class="car-card">
-          <div class="car-image">
-            <img
-              src="https://via.placeholder.com/300x180?text=Toyota+Corolla"
-              alt="Toyota Corolla"
-            />
-          </div>
-          <div class="car-title">Toyota Corolla (2019-2022)</div>
-          <div class="car-price">от 500 злотых/неделя</div>
-          <div class="car-details">
-            Стоимость аренды 700 злотых/неделя, но скидка при долгосрочной
-            аренде
-          </div>
-          <div class="car-actions">
-            <span>Гибрид/Бензин</span>
+        <div class="car-actions">
             <button class="btn-rent">Арендовать</button>
-          </div>
         </div>
+    </div>
+<?php endforeach; ?>
 
-        <div class="car-card">
-          <div class="car-image">
-            <img
-              src="https://via.placeholder.com/300x180?text=Nissan+Leaf"
-              alt="Nissan Leaf"
-            />
-          </div>
-          <div class="car-title">Nissan Leaf (2020)</div>
-          <div class="car-price">от 600 злотых/неделя</div>
-          <div class="car-details">
-            Экологичный электромобиль с нулевым выбросом CO₂
-          </div>
-          <div class="car-actions">
-            <span>Электрический</span>
-            <button class="btn-rent">Арендовать</button>
-          </div>
-        </div>
-
-        
-
-      </div>
-    </section>
-
-    
+    </div>
+</section>
 
     <!-- НОВОСТИ И ОТЗЫВЫ -->
     <section class="section news-reviews-section" id="news">
@@ -829,9 +836,8 @@
 </section>
 </div>
 
-
 <div class="telegram-float">
-  <a href="https://t.me/SHPAX_ARENDA" target="_blank" rel="noopener">
+  <a href="https://t.me/SHPAX_ARENDA" target="_blank" rel="noopener" style= "color: black;">
     <i class="fab fa-telegram-plane"></i>
   </a>
 </div>
@@ -880,7 +886,7 @@
             href="https://www.instagram.com/nikitashpakovski"
             target="_blank"
             rel="noopener"
-            style="color: #333; transition: 0.3s"
+            style="color: #3fd10f; transition: 0.3s"
           >
             <i class="fab fa-instagram" style="font-size: 1.5rem"></i>
           </a>
@@ -888,7 +894,7 @@
             href="https://www.youtube.com/@Shpakovskyi"
             target="_blank"
             rel="noopener"
-            style="color: #333; transition: 0.3s"
+            style="color: #3fd10f; transition: 0.3s"
           >
             <i class="fab fa-youtube" style="font-size: 1.5rem"></i>
           </a>
@@ -901,7 +907,6 @@
     </footer>
 
     <script>
-
       /*************************************************************
       3. Intersection Observer (плавное появление секций)
       *************************************************************/
@@ -951,4 +956,3 @@
     </script>
   </body>
 </html>
-<!-- njksvn -->
