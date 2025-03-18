@@ -1,958 +1,559 @@
 <?php
 session_start();
+require_once '../config/config.php';
 
-// Настройки ошибок
+// Включение режима отладки
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Подключение БД
-include($_SERVER['DOCUMENT_ROOT'] . '/config/config.php');
-
-// Функция для безопасного получения изображений
-// Функция для безопасного получения изображения
-function getCarImage($imagesJson, $defaultImage = '/uploads_img/default-car.jpg') {
-    $images = json_decode($imagesJson, true); // Декодируем JSON
-    
-    if (!empty($images) && is_array($images)) {
-        $imagePath = '/' . ltrim($images[0], '/'); // Берем первый путь
-
-        return htmlspecialchars($imagePath, ENT_QUOTES, 'UTF-8'); // Защита от XSS
-    }
-
-    return $defaultImage;
+// Проверка авторизации
+if (!isset($_SESSION['admin_id'])) {
+    header('Location: login.php');
+    exit;
 }
 
+// Проверка соединения с БД
+if (!isset($pdo)) {
+    die("Ошибка: нет соединения с базой данных.");
+}
 
-
+// Получение списка машин
 try {
-    // Подготовленный запрос
-    $stmt = $pdo->query("
-        SELECT 
-            id,
-            name,
-            description,
-            version,
-            rental_price,
-            deposit_price,
-            images,
-            created_at,
-            updated_at
-        FROM cars_rental
-        ORDER BY created_at DESC
-    ");
-    
-    $cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Обработка данных
-   // Обработка данных
-foreach ($cars as &$car) {
-    // Обрабатываем только одно изображение (первое)
-    $car['main_image'] = getCarImage($car['images'] ?? '[]');
-
-    // Форматируем цены
-    $car['rental_price'] = number_format($car['rental_price'], 0, '', ' ');
-    $car['deposit_price'] = number_format($car['deposit_price'], 0, '', ' ');
-    
-    // Проверка на наличие 'created_at' и 'updated_at', чтобы избежать ошибок
-    $car['created_at'] = isset($car['created_at']) ? htmlspecialchars($car['created_at']) : 'Не указано';
-    $car['updated_at'] = isset($car['updated_at']) ? htmlspecialchars($car['updated_at']) : 'Не указано';
-}
-
-} catch (PDOException $e) {
-    error_log("Database error: " . $e->getMessage());
-    die("Ошибка базы данных. Пожалуйста, попробуйте позже.");
-} catch (Throwable $e) {
-    error_log("General error: " . $e->getMessage());
-    die("Произошла ошибка. Мы уже работаем над её устранением.");
-}
-?>
+    $stmt = $pdo->prepare("SELECT * FROM cars_rental"); $stmt->execute(); $cars
+= $stmt->fetchAll(PDO::FETCH_ASSOC); } catch (PDOException $e) { die("Ошибка
+базы данных: " . htmlspecialchars($e->getMessage())); } ?>
 
 <!DOCTYPE html>
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Аренда авто под такси — Варшава</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-      referrerpolicy="no-referrer"
-    />
+    <title>Админ-панель</title>
+    <link rel="stylesheet" href="../assets/css/admin_styles.css" />
     <style>
-      * {
-        font-family: Anton;
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      html {
-        scroll-behavior: smooth;
-      }
-      body {
-        font-family: "Montserrat", sans-serif;
-        line-height: 1.5;
-      }
-      a {
-        text-decoration: none;
-      }
-
-      /* CSS-переменные */
       :root {
-        --color-primary: #f8f8f8; /* Изменён для лучшей читаемости на темном фоне */
-        --color-secondary: #3fd10f; /* Яркий зеленый */
-        --color-tertiary: #1a1a1a; /* Основной фон */
-        --color-action: #3fd10f;
-        --color-white: #fff;
-        --color-dark: #333;
-        --color-shadow: rgba(0, 0, 0, 0.5);
-        --color-accent: #e74c3c;
-        --transition: all 0.3s ease;
+        --primary-color: #2a5c83;
+        --secondary-color: #5ba4e6;
+        --success-color: #4caf50;
+        --danger-color: #f44336;
+        --hover-light: rgba(0, 0, 0, 0.05);
+        --border-radius: 8px;
+        --box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
       }
 
       body {
-  margin: 0;
-  padding: 0;
-  background: url("./Flux_Dev_____Mercedes_EClass_______TAXI____________TAXI________1.jpeg") center/cover no-repeat fixed;
-  /* fixed — чтобы при прокрутке картинка оставалась на месте */
-  color: #f8f8f8; /* текст по умолчанию */
-}
-
-      /* Шапка и футер */
-      body.dark-theme header,
-      body.dark-theme footer {
-        background-color: #2b2b2b;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        min-height: 100vh;
+        padding: 2rem;
       }
 
-      /* Навигация */
-      body.dark-theme .nav-link {
-        color: var(--color-primary);
-      }
-      body.dark-theme .nav-link:hover {
-        color: var(--color-secondary);
-      }
-
-      /* Кнопки */
-      body.dark-theme .btn,
-      body.dark-theme .btn-hero,
-      body.dark-theme .btn-rent {
-        background-color: var(--color-secondary);
-        color: var(--color-tertiary);
-      }
-      body.dark-theme .btn:hover,
-      body.dark-theme .btn-hero:hover,
-      body.dark-theme .btn-rent:hover {
-        background-color: #2e9a0a;
-      }
-
-      /* Header */
-      header {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        padding: 10px 0;
-        z-index: 1000;
-        background: transparent;
-        transition: background 0.3s ease, box-shadow 0.3s ease;
-      }
-      header.scrolled {
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-      }
-      .header-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 2rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .logo {
-        line-height: 1.1;
-        font-family: "Arial", sans-serif;
-        font-size: 1.8rem;
-        font-weight: 700;
-        letter-spacing: 1.5px;
-        color: var(--color-primary);
-      }
-      .logo .logo-accent {
-        color: var(--color-secondary);
-      }
-
-      /* Навигация */
-      .nav-links {
-        font-size: 19px;
-        display: flex;
-        gap: 2rem;
-        align-items: center;
-      }
-      .nav-link {
-        position: relative;
-        padding: 0.5rem 1rem;
-        transition: var(--transition);
-      }
-      .nav-link:hover {
-        color: var(--color-secondary);
-      }
-      .nav-link::after {
-        content: "";
-        position: absolute;
-        bottom: -5px;
-        left: 0;
-        width: 0;
-        height: 2px;
-        background-color: var(--color-secondary);
-        transition: var(--transition);
-      }
-      .nav-link:hover::after {
-        width: 100%;
-      }
-
-      /* Dropdown */
-      .dropdown {
-        position: relative;
-        display: inline-block;
-      }
-      .dropbtn {
-        font-size: 16px;
-        background: none;
-        border: none;
-        padding: 0.5rem 1rem;
-        cursor: pointer;
-        transition: var(--transition);
-        color: inherit;
-      }
-      .dropbtn:hover {
-        color: var(--color-secondary);
-      }
-      .dropdown-content {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        min-width: 200px;
-        border-radius: 4px;
-        overflow: hidden;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
-        background-color: #2b2b2b;
-      }
-      .dropdown-content a {
-        padding: 12px 16px;
-        display: block;
-        transition: background 0.3s;
-        color: var(--color-primary);
-      }
-      .dropdown-content a:hover {
-        background: #3a3a3a;
-      }
-      .dropdown:hover .dropdown-content {
-        display: block;
-      }
-
-      /* Mobile menu */
-      .mobile-menu-btn {
-        display: none;
-        flex-direction: column;
-        gap: 4px;
-        cursor: pointer;
-      }
-      .mobile-menu-btn span {
-        width: 25px;
-        height: 2px;
-        background: var(--color-primary);
-        transition: var(--transition);
-      }
-      @media (max-width: 1024px) {
-        .nav-links {
-          display: none;
-        }
-        .mobile-menu-btn {
-          display: flex;
-        }
-        .header-container {
-          padding: 0 1rem;
-        }
-        .logo {
-          font-size: 1.5rem;
-        }
-      }
-
-      .main-container {
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-
-      .hero {
-        min-height: 80vh;
-        position: relative;
-        background: none; /* убираем фон-картинку из hero */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        color: #f8f8f8;
-      }
-      .hero::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5));
-        z-index: 1;
-      }
-      .hero-content {
-        position: relative;
-        z-index: 2;
-        max-width: 1200px;
-        padding: 0 20px;
-        text-align: center;
-      }
-      .hero-content h1 {
-        font-family: Oswald;
-        font-size: 66px;
-        margin-bottom: 20px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        line-height: 1.2;
-      }
-      .hero-content p {
-        font-size: 35px;
-        margin-bottom: 30px;
-      }
-      .highlight {
-        color: #3fd10f;
-        font-weight: bold;
-      }
-      .btn-hero {
-        display: inline-block;
-        background-color: var(--color-secondary);
-        color: var(--color-tertiary);
-        padding: 15px 30px;
-        border-radius: 5px;
+      h2 {
+        color: var(--primary-color);
+        margin-bottom: 2rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 1px;
-        transition: background 0.3s, transform 0.3s;
-      }
-      .btn-hero:hover {
-        background-color: #2e9a0a;
-        transform: translateY(-3px);
-      }
-      @media (max-width: 768px) {
-        .hero-content h1 {
-          font-size: 2.2rem;
-        }
-        .hero-content p {
-          font-size: 1rem;
-        }
       }
 
-      /* Секции */
-      .section {
-        padding: 60px 20px;
+      .tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        background: white;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
       }
-      .section h2 {
-        text-align: center;
-        font-size: 2rem;
+
+      .tab {
+        padding: 1rem 2rem;
+        cursor: pointer;
+        border-radius: var(--border-radius);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6c757d;
+      }
+
+      .tab:hover {
+        background: var(--hover-light);
+        transform: translateY(-2px);
+      }
+
+      .tab.active {
+        background: var(--primary-color);
+        color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .search-container {
+        margin-bottom: 2rem;
         position: relative;
       }
 
-      .carH2 {
-        padding: 60px 0 20px;
+      .search-container input {
+        padding: 1rem 1rem 1rem 3rem;
+        border: 2px solid #dee2e6;
+        border-radius: var(--border-radius);
+        width: 100%;
+        transition: all 0.3s ease;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="%236c757d" d="M18.031 16.617l4.283 4.282-1.415 1.415-4.282-4.283A8.96 8.96 0 0 1 11 20c-4.968 0-9-4.032-9-9s4.032-9 9-9 9 4.032 9 9a8.96 8.96 0 0 1-1.969 5.617zm-2.006-.742A6.977 6.977 0 0 0 18 11c0-3.868-3.133-7-7-7-3.868 0-7 3.132-7 7 0 3.867 3.132 7 7 7a6.977 6.977 0 0 0 4.875-1.975l.15-.15z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: 1rem center;
       }
 
-      /* Автопарк */
-      #autopark {
-        position: relative;
-        background: rgba(0, 0, 0, 0.2); /* или none, если хотите полностью прозрачный */
-        padding: 20px 20px;
+      .search-container input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(42, 92, 131, 0.1);
+        outline: none;
       }
-      .autopark-grid {
+
+      .cars-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        padding: 1rem 0;
       }
+
       .car-card {
-        border: 2px solid #3fd10f;
-        background: #2b2b2b;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px var(--color-shadow);
-        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
-        transition: transform 0.3s, box-shadow 0.3s;
       }
+
       .car-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 5px 15px #3fd10f;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
       }
+
       .car-image {
-        width: 100%;
-        height: 180px;
-        overflow: hidden;
-        border-radius: 5px;
-        margin-bottom: 15px;
+        height: 200px;
+        position: relative;
+        background: #f8f9fa;
       }
+
       .car-image img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.4s;
+        border-radius: 12px 12px 0 0;
       }
-      .car-card:hover .car-image img {
-        transform: scale(1.05);
+
+      .car-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
       }
+
+      .car-content {
+        padding: 1.5rem;
+        flex-grow: 1;
+      }
+
       .car-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 10px;
-        color: var(--color-primary);
+        font-size: 1.2em;
+        margin-bottom: 0.5rem;
+        color: var(--primary-color);
       }
-      .car-price {
-        font-size: 1rem;
-        font-weight: 500;
-        color: var(--color-secondary);
-        margin-bottom: 10px;
-      }
+
       .car-details {
-        font-size: 0.9rem;
-        margin-bottom: 20px;
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1rem 0;
+        color: #6c757d;
       }
-      .car-actions {
+
+      .car-details li {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-      }
-      .btn-rent {
-        background-color: var(--color-secondary);
-        color: var(--color-tertiary);
-        padding: 10px 20px;
-        border-radius: 4px;
-        font-weight: 600;
-        transition: background 0.3s, transform 0.3s;
-      }
-      .btn-rent:hover {
-        background-color: #2e9a0a;
-        transform: translateY(-3px);
+        padding: 0.3rem 0;
+        font-size: 0.95em;
       }
 
-      /* Новости и отзывы */
-      .news-reviews-section {
-        background-color: #1a1a1a;
+      .car-details strong {
+        color: #495057;
+      }
+
+      .card-actions {
         display: flex;
-        flex-wrap: wrap;
-        gap: 40px;
-        padding: 60px 20px;
-      }
-      .news-list,
-      .reviews-list {
-        flex: 1;
-        min-width: 300px;
-      }
-      .news-item,
-      .review-item {
-        background: #2b2b2b;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px var(--color-shadow);
-        padding: 20px;
-        margin-bottom: 20px;
-        transition: transform 0.3s, box-shadow 0.3s;
-      }
-      .news-item:hover,
-      .review-item:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
-      }
-      .news-item h3,
-      .review-item h3 {
-        font-size: 1.2rem;
-        margin-bottom: 10px;
-        color: var(--color-primary);
-      }
-      .news-item p,
-      .review-item p {
-        font-size: 1rem;
-        margin-bottom: 10px;
-        line-height: 1.4;
-        color: #ccc;
-      }
-      .news-item small,
-      .review-item small {
-        color: #777;
+        gap: 0.5rem;
+        margin-top: auto;
+        padding: 0 1.5rem 1.5rem;
       }
 
-      /* Видео */
-      .video-section {
-        padding: 4rem 0;
-      }
-      .video-wrapper {
-        position: relative;
-        width: 100%;
-        padding-bottom: 46.25%; /* Соотношение 16:9 */
-        margin: 2rem 0;
-        border-radius: 1.5rem;
-        overflow: hidden;
-        box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.7);
+      .status-badge {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 500;
       }
 
-      /* ВАЖНО: iframe внутри .video-wrapper должен занимать всё пространство */
-      .video-wrapper iframe {
-        /* padding-left: 20px; */
-        border-radius: 1.5rem;
-        padding: 15px 20px;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+      .status-available {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status-rented {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .btn {
+        padding: 0.5rem 1rem;
         border: none;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
       }
-      .small-videos {
-        padding: 0 20px;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1.5rem;
-        max-width: 1200px;
-        margin: 2rem auto 0;
+
+      .btn-primary {
+        background: var(--primary-color);
+        color: white;
       }
-      .small-video-wrapper {
-        position: relative;
-        border-radius: 1rem;
-        overflow: hidden;
-        transition: transform 0.3s ease;
-        aspect-ratio: 16/9;
+
+      .btn-primary:hover {
+        background: #234866;
+        transform: translateY(-1px);
       }
-      .small-video-wrapper:hover {
-        transform: translateY(-5px);
+
+      .btn-success {
+        background: var(--success-color);
+        color: white;
       }
-      .small-video-wrapper iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
+
+      .btn-danger {
+        background: var(--danger-color);
+        color: white;
       }
+
+      .btn-icon {
+        padding: 0.5rem;
+        border-radius: 50%;
+      }
+
+      .pagination {
+        margin-top: 2rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+
+      .page-item {
+        padding: 0.5rem 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .page-item:hover {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+      }
+
+      .page-item.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+      }
+
       @media (max-width: 768px) {
-        .small-videos {
+        body {
+          padding: 1rem;
+        }
+
+        .cars-grid {
           grid-template-columns: 1fr;
-          max-width: 600px;
+        }
+
+        .car-image {
+          height: 180px;
         }
       }
 
-      /* Футер */
-      footer {
-        background-color: #2b2b2b;
+      @media (min-width: 1200px) {
+        .cars-grid {
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        }
+      }
+
+      /* Анимации */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .tab-content > div {
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      /* Модальное окно улучшения */
+      .modal-content {
+        border-radius: var(--border-radius);
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .modal-header {
+        background: var(--primary-color);
+        color: white;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+      }
+
+      /* Стили для модального окна редактирования */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+
+      .modal-content {
+        background-color: #fefefe;
+        margin: 10% auto;
         padding: 20px;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .footer-left,
-      .footer-right {
-        flex: 1 1 300px;
-        margin: 10px;
-      }
-      .footer-left p,
-      .footer-right p {
-        margin-bottom: 10px;
-      }
-      .footer-right a {
-        color: var(--color-primary);
-        transition: var(--transition);
-      }
-      .footer-right a:hover {
-        color: var(--color-secondary);
-      }
-      .social-icons {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 10px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 600px;
       }
 
-      /* Анимация появления секций */
-      .hidden {
-        opacity: 0;
-        transform: translateY(20px);
-        transition: opacity 0.6s, transform 0.6s;
-      }
-      .show {
-        opacity: 1;
-        transform: translateY(0);
-      }
-      .advantages-section {
-        background-color: #1a1a1a;
-        padding: 60px 20px 0;
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
       }
 
-      .advantages-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
+      .close:hover,
+      .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
       }
+    </style>
+  </head>
+  <body>
+    <h2>Админ-панель</h2>
 
-      .advantage-card {
+    <input type="text" id="searchInput" placeholder="Поиск автомобилей..." />
 
-        background: #2b2b2b;
-        color: #f8f8f8;
-        border: 2px solid #3fd10f;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-        padding: 20px;
-        transition: transform 0.3s, box-shadow 0.3s, border 0.3s;
-      }
+    <div class="tabs">
+      <div class="tab active" data-tab="car-list">Список авто</div>
+      <div class="tab" data-tab="rental-requests">Заявки на аренду</div>
+    </div>
 
-      .advantage-card h3 {
-        font-size: 1.2rem;
-        margin-bottom: 10px;
+    <div class="tab-content">
+      <div id="car-list" class="car-list active">
+        <div class="cars-grid">
+          <?php foreach ($cars as $car): ?>
+          <div class="car-card">
+            <div class="car-image">
+              <?php
+    $imagePaths = json_decode($car['images'], true);
+    if (!is_array($imagePaths)) {
+        $imagePaths = explode(',', $car['images']);
+    }
+    $firstImage = !empty($imagePaths[0]) ? trim($imagePaths[0], '[]"') : null;
 
-        color: #f8f8f8;
-      }
-
-      .advantage-card p {
-        font-size: 1rem;
-        margin-bottom: 10px;
-        line-height: 1.4;
-
-        color: #ccc;
-      }
-
-      .video-section{
-        background-color: #1a1a1a;
-      }
-
-      .telegram-float {
-  position: fixed;       /* фиксируем в окне */
-  bottom: 140px;          /* отступ снизу */
-  right: 40px;           /* отступ справа */
-  background-color: #3fd10f; /* брендовый цвет Telegram или любой другой */
-  color: #fff;
-  padding: 5px;
-  border-radius: 50%;    /* скругляем, чтобы получился круг */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-  text-align: center;
-  z-index: 9999;         /* чтобы было поверх других элементов */
-  cursor: pointer;
-}
-.telegram-float i {
-  font-size: 70px;       /* размер иконки */
-}
-.telegram-float:hover {
-  background-color: #007ab8; /* эффект при наведении */
-}
-
-      </style>
-     </head>
- <body class="dark-theme">
-    <header class="header">
-      <div class="header-container">
-        <div class="logo">
-          <span class="logo-primary">SHPAX</span>
-          <span class="logo-accent">ARENDA</span>
-        </div>
-
-        <nav class="nav-menu">
-          <div class="nav-links">
-            <a href="#hero" class="nav-link">Главная</a>
-            <a href="#autopark" class="nav-link">Автопарк</a>
-            <a href="#news" class="nav-link">Новости</a>
-            <a href="#video" class="nav-link">Видео</a>
-
-            <a href="#footer" class="nav-link">Контакты</a>
-            <div class="dropdown">
-              <button class="dropbtn">Документы ▼</button>
-              <div class="dropdown-content">
-                <a href="admin/dashboard.php">Админка</a>
-                <a href="form/">Формы</a>
-                <a href="privacy_policy/">Политика</a>
-                <a href="regulamin/">Регламент</a>
-                <a href="index.html">Главная страница</a>
+    if ($firstImage):
+        // Формируем полный URL к изображению
+        $imagePath = 'https://test1.foodcasecatering.net/uploads_img/' . rawurlencode(basename($firstImage));
+    ?>
+              <img
+                src="<?= $imagePath ?>"
+                alt="<?= htmlspecialchars($car['name']) ?>"
+                loading="lazy"
+              />
+              <?php else: ?>
+              <div class="no-image">Нет фото</div>
+              <?php endif; ?>
+              <div class="car-badge">
+                ID:
+                <?= htmlspecialchars($car['id']) ?>
               </div>
             </div>
+
+            <div class="car-content">
+              <h3><?= htmlspecialchars($car['name']) ?></h3>
+              <ul class="car-details">
+                <li>
+                  <span>Версия:</span>
+                  <strong
+                    ><?= htmlspecialchars($car['version'] ?? 'Не указано') ?></strong
+                  >
+                </li>
+                <li>
+                  <span>Цена/день:</span>
+                  <strong
+                    >$<?= htmlspecialchars($car['rental_price'] ?? 'Не указана') ?></strong
+                  >
+                </li>
+                <li>
+                  <span>Статус:</span>
+                  <span
+                    class="status-badge status-<?= $car['is_available'] ? 'available' : 'rented' ?>"
+                  >
+                    <?= $car['is_available'] ? 'Доступен' : 'Арендован' ?>
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="card-actions">
+              <button
+                class="btn btn-primary edit-car"
+                data-id="<?= htmlspecialchars($car['id']) ?>"
+              >
+                Редактировать
+              </button>
+              <button
+                class="btn btn-danger delete-car"
+                data-id="<?= htmlspecialchars($car['id']) ?>"
+              >
+                Удалить
+              </button>
+            </div>
           </div>
-        </nav>
-
-        <div class="mobile-menu-btn">
-          <span></span>
-          <span></span>
-          <span></span>
+          <?php endforeach; ?>
         </div>
       </div>
-    </header>
-<div class="main-container">
-    <!-- HERO (главная секция) -->
-    <section class="hero" id="hero">
-      <div class="hero-content">
-        <h1>Аренда авто Варшава</h1>
-        <p>
-          Зарабатывайте от
-          <span class="highlight">6 000</span>
-          до
-          <span class="highlight">8 000</span>
-          zl<br> в месяц на работе в такси
-        </p>
-        <a href="#autopark" class="btn-hero">Выбрать автомобиль</a>
-      </div>
-    </section>
 
-    <!-- НАШИ ПРЕИМУЩЕСТВА -->
-    <section class="section advantages-section" id="advantages">
-      <h2>Наши преимущества</h2>
-      <div class="advantages-grid">
-        <div class="advantage-card">
-          <h3>Даем лучшие условия на рынке</h3>
-          <p>Нет залога и депозита на старте</p>
-          <p>Моментальный вывод, комиссия – 0,6%</p>
-        </div>
-        <div class="advantage-card">
-          <h3>С нами выгодно</h3>
-          <p>Нет штрафов за перепробег</p>
-          <p>На время сложного ремонта выдаем подменный авто</p>
-        </div>
-        <div class="advantage-card">
-          <h3>Работаем честно</h3>
-          <p>Простой и понятный договор</p>
-          <p>Нет скрытых платежей</p>
-        </div>
-        <div class="advantage-card">
-          <h3>С нами комфортно</h3>
-          <p>Поддержка 24/7 – отвечаем быстро и по делу</p>
-          <p>
-            Решаем споры с поддержкой Яндекса – мы отстаиваем позицию водителя
-          </p>
-        </div>
+      <div id="rental-requests" class="rental-requests">
+        <?php include 'rental_requests.php'; ?>
       </div>
-      <h2 class="carH2">Автопарк</h2>
-    </section>
-
-<!-- Выводим данные о машинах -->
-<section class="section" id="autopark">
-    <div class="autopark-grid">
-        <?php foreach ($cars as $car): ?>
-    <div class="car-card">
-        <div class="car-image">
-            <!-- Выводим изображение машины -->
-            <img src="<?= htmlspecialchars($car['main_image']) ?>" alt="<?= htmlspecialchars($car['name']) ?>">
-        </div>
-        <div class="car-title"><?= htmlspecialchars($car['name']) ?></div>
-        <div class="car-version"><?= htmlspecialchars($car['version']) ?></div>
-        <div class="car-price">от <?= htmlspecialchars($car['rental_price']) ?> злотых/неделя</div>
-        <div class="car-deposit">Залог: <?= htmlspecialchars($car['deposit_price']) ?> злотых</div>
-        <div class="car-description"><?= nl2br(htmlspecialchars($car['description'])) ?></div>
-        <div class="car-dates">
-            <div>Дата добавления: <?= htmlspecialchars($car['created_at']) ?></div>
-            <div>Последнее обновление: <?= htmlspecialchars($car['updated_at']) ?></div>
-        </div>
-        <div class="car-actions">
-            <button class="btn-rent">Арендовать</button>
-        </div>
     </div>
-<?php endforeach; ?>
 
-    </div>
-</section>
-
-    <!-- НОВОСТИ И ОТЗЫВЫ -->
-    <section class="section news-reviews-section" id="news">
-      <div class="news-list">
-        <h2>Новости</h2>
-        <div class="news-item">
-          <h3>Новое авто в наличии!</h3>
-          <p>
-            В нашем автопарке появилось новое авто: Tesla Model S 2025 года.
-            Отличный вариант для тех, кто хочет работать на электромобиле!
-          </p>
-          <small>01.03.2025</small>
-        </div>
-        <div class="news-item">
-          <h3>Снижена цена на аренду Toyota Corolla</h3>
-          <p>
-            Теперь аренда популярной Toyota Corolla стала еще доступнее. Спешите
-            воспользоваться предложением!
-          </p>
-          <small>25.02.2025</small>
-        </div>
+    <!-- Модальное окно редактирования -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Редактировать авто</h2>
+        <form id="editCarForm">
+          <input type="hidden" id="carId" name="car_id" />
+          <label>Марка:</label>
+          <input type="text" id="make" name="make" required />
+          <label>Модель:</label>
+          <input type="text" id="model" name="model" required />
+          <label>Год:</label>
+          <input type="number" id="year" name="year" required />
+          <label>Цена/день:</label>
+          <input type="number" id="rental_price" name="rental_price" required />
+          <label>Статус:</label>
+          <select id="is_available" name="is_available" required>
+            <option value="1">Доступен</option>
+            <option value="0">Арендован</option>
+          </select>
+          <button type="submit" class="btn btn-success">Сохранить</button>
+        </form>
       </div>
-      <div class="reviews-list">
-        <h2>Отзывы</h2>
-        <div class="review-item">
-          <h3>Отличный сервис!</h3>
-          <p>
-            Очень доволен качеством обслуживания и автомобилями. Рекомендую!
-          </p>
-          <small>Иван И.</small>
-        </div>
-        <div class="review-item">
-          <h3>Быстрое оформление</h3>
-          <p>
-            Быстро оформили документы, машина в отличном состоянии. Спасибо!
-          </p>
-          <small>Мария К.</small>
-        </div>
-      </div>
-    </section>
-
-    <!-- ВИДЕО (YouTube) -->
-<section class="section video-section" id="video">
-  <h2>Смотрите наши видео на YouTube</h2>
-  <p><h3>Посмотрите наш обзор сервиса и машин:</h3></p>
-  <div class="video-wrapper">
-    <iframe
-      src="https://www.youtube.com/embed/Ts4vw0FcTjQ?start=938"
-      frameborder="0"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      allowfullscreen
-    ></iframe>
-  </div>
-  <div class="small-videos">
-    <div class="small-video-wrapper">
-      <iframe
-        src="https://www.youtube.com/embed/X_MMoTsc_mQ"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen
-      ></iframe>
     </div>
-    <div class="small-video-wrapper">
-      <iframe
-        src="https://www.youtube.com/embed/igqSHHCIixk"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen
-      ></iframe>
-    </div>
-    <div class="small-video-wrapper">
-      <iframe
-        src="https://www.youtube.com/embed/VIDEO_ID_3"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen
-      ></iframe>
-    </div>
-  </div>
-</section>
-</div>
-
-<div class="telegram-float">
-  <a href="https://t.me/SHPAX_ARENDA" target="_blank" rel="noopener" style= "color: black;">
-    <i class="fab fa-telegram-plane"></i>
-  </a>
-</div>
-
-    <footer>
-      <div style="flex: 1; max-width: 45%; text-align: left">
-        <p style="font-size: 1.2rem; margin-bottom: 10px">
-          Аренда авто под такси в Варшаве
-        </p>
-        <p style="font-size: 1rem; margin-bottom: 10px">
-          Свяжитесь с нами:
-          <a
-            href="tel:+48123456789"
-            style="color: #3fd10f; text-decoration: none"
-            >+48 123 456 789</a
-          >
-          |
-          <a
-            href="mailto:info@shpax-arenda.pl"
-            style="color: #3fd10f; text-decoration: none"
-            >info@shpax-arenda.pl</a
-          >
-        </p>
-        <p style="font-size: 0.9rem; color: #777">
-          © 2025 Аренда авто под такси в Варшаве. Все права защищены.
-        </p>
-      </div>
-      <div style="flex: 1; max-width: 45%; text-align: right">
-        <div
-          style="
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
-            margin-bottom: 10px;
-          "
-        >
-          <!-- <a
-            href="https://t.me/SHPAX_ARENDA"
-            target="_blank"
-            rel="noopener"
-            style="color: #333; transition: 0.3s"
-          >
-            <i class="fab fa-telegram-plane" style="font-size: 1.5rem"></i>
-          </a> -->
-          <a
-            href="https://www.instagram.com/nikitashpakovski"
-            target="_blank"
-            rel="noopener"
-            style="color: #3fd10f; transition: 0.3s"
-          >
-            <i class="fab fa-instagram" style="font-size: 1.5rem"></i>
-          </a>
-          <a
-            href="https://www.youtube.com/@Shpakovskyi"
-            target="_blank"
-            rel="noopener"
-            style="color: #3fd10f; transition: 0.3s"
-          >
-            <i class="fab fa-youtube" style="font-size: 1.5rem"></i>
-          </a>
-        </div>
-        <p style="font-size: 1rem; margin-bottom: 10px">
-          Адрес: ул. Примерная, 10, Варшава<br />График работы: Пн–Пт с 9:00 до
-          18:00
-        </p>
-      </div>
-    </footer>
 
     <script>
-      /*************************************************************
-      3. Intersection Observer (плавное появление секций)
-      *************************************************************/
-      const sections = document.querySelectorAll(".section");
-      const options = { threshold: 0.1 };
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("show");
+      document.addEventListener("DOMContentLoaded", () => {
+        function toggleTab(event) {
+          document
+            .querySelectorAll(".tab")
+            .forEach((t) => t.classList.remove("active"));
+          event.target.classList.add("active");
+          document.querySelectorAll(".tab-content > div").forEach((content) => {
+            content.classList.remove("active");
+            if (content.id === event.target.dataset.tab)
+              content.classList.add("active");
+          });
+        }
+
+        function filterCars() {
+          const searchTerm = this.value.toLowerCase();
+          document.querySelectorAll(".car-card").forEach((car) => {
+            const text = car.textContent.toLowerCase();
+            car.style.display = text.includes(searchTerm) ? "block" : "none";
+          });
+        }
+
+        async function openEditModal(event) {
+          const response = await fetch(
+            `get_car.php?id=${event.target.dataset.id}`
+          );
+          const car = await response.json();
+          if (car) {
+            document.getElementById("carId").value = car.id;
+            document.getElementById("make").value = car.make;
+            document.getElementById("model").value = car.model;
+            document.getElementById("year").value = car.year;
+            document.getElementById("rental_price").value = car.rental_price;
+            document.getElementById("is_available").value = car.is_available
+              ? "1"
+              : "0";
+            document.getElementById("editModal").style.display = "block";
           }
-        });
-      }, options);
-      sections.forEach((sec) => {
-        sec.classList.add("hidden");
-        io.observe(sec);
+        }
+
+        async function deleteCar(event) {
+          if (confirm("Вы уверены, что хотите удалить авто?")) {
+            const response = await fetch("delete_car.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ car_id: event.target.dataset.id }),
+            });
+            const result = await response.json();
+            if (result.success) location.reload();
+            else alert("Ошибка при удалении авто");
+          }
+        }
+
+        document
+          .querySelectorAll(".tab")
+          .forEach((tab) => tab.addEventListener("click", toggleTab));
+        document
+          .getElementById("searchInput")
+          .addEventListener("input", filterCars);
+        document
+          .querySelectorAll(".edit-car")
+          .forEach((btn) => btn.addEventListener("click", openEditModal));
+        document
+          .querySelectorAll(".delete-car")
+          .forEach((btn) => btn.addEventListener("click", deleteCar));
+        document
+          .querySelector(".close")
+          .addEventListener(
+            "click",
+            () => (document.getElementById("editModal").style.display = "none")
+          );
       });
-
-      // для динамического обновления видео с Ютуба
-      async function fetchLatestVideos() {
-        const apiKey = "YOUR_YOUTUBE_API_KEY";
-        const channelId = "YOUR_CHANNEL_ID";
-        const url = `https://www.googleapis.com/youtube/v3/search?key=${apiKey}&channelId=${channelId}&part=snippet,id&order=date&maxResults=4`;
-
-        const response = await fetch(url);
-        const data = await response.json();
-
-        const mainVideo = document.querySelector(".video-wrapper iframe");
-        const smallVideos = document.querySelectorAll(
-          ".small-video-wrapper iframe"
-        );
-
-        mainVideo.src = `https://www.youtube.com/embed/${data.items[0].id.videoId}`;
-        smallVideos.forEach((video, index) => {
-          video.src = `https://www.youtube.com/embed/${
-            data.items[index + 1].id.videoId
-          }`;
-        });
-      }
-
-      fetchLatestVideos();
-
-      // для хеадер
-      document.querySelector('.mobile-menu-btn').addEventListener('click', function() {
-  const navLinks = document.querySelector('.nav-links');
-  navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
-});
     </script>
   </body>
 </html>
