@@ -27,19 +27,23 @@ function getCarImage($imagesJson, $defaultImage = '/uploads_img/default-car.jpg'
 
 try {
     // Подготовленный запрос
-    $stmt = $pdo->query("
-        SELECT 
-            id,
-            name,
-            description,
-            version,
-            rental_price,
-            deposit_price,
-            images,
-            created_at,
-            updated_at
-        FROM cars_rental
-        ORDER BY created_at DESC
+   $stmt = $pdo->query("
+    SELECT 
+        id,
+        name,
+        description,
+        version,
+        rental_price,
+        deposit_price,
+        images,
+        mileage,
+        transmission,
+        fuel,
+        consumption,
+        created_at,
+        updated_at
+    FROM cars_rental
+    ORDER BY created_at DESC
     ");
     
     $cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -407,6 +411,10 @@ foreach ($cars as &$car) {
       .car-card:hover .car-image img {
         transform: scale(1.05);
       }
+      .carfl{
+          display: flex;
+          justify-content: space-around;
+      }
       .car-title {
         font-size: 1.1rem;
         font-weight: 700;
@@ -625,24 +633,24 @@ foreach ($cars as &$car) {
       }
 
       .telegram-float {
-  position: fixed;       /* фиксируем в окне */
-  bottom: 140px;          /* отступ снизу */
-  right: 40px;           /* отступ справа */
-  background-color: #3fd10f; /* брендовый цвет Telegram или любой другой */
-  color: #fff;
-  padding: 5px;
-  border-radius: 50%;    /* скругляем, чтобы получился круг */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-  text-align: center;
-  z-index: 9999;         /* чтобы было поверх других элементов */
-  cursor: pointer;
-}
-.telegram-float i {
-  font-size: 70px;       /* размер иконки */
-}
-.telegram-float:hover {
-  background-color: #007ab8; /* эффект при наведении */
-}
+          position: fixed;       /* фиксируем в окне */
+          bottom: 140px;          /* отступ снизу */
+          right: 40px;           /* отступ справа */
+          background-color: #3fd10f; /* брендовый цвет Telegram или любой другой */
+          color: #fff;
+          padding: 5px;
+          border-radius: 50%;    /* скругляем, чтобы получился круг */
+          box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+          text-align: center;
+          z-index: 9999;         /* чтобы было поверх других элементов */
+          cursor: pointer;
+        }
+        .telegram-float i {
+          font-size: 70px;       /* размер иконки */
+        }
+        .telegram-float:hover {
+          background-color: #007ab8; /* эффект при наведении */
+        }
 
       </style>
      </head>
@@ -732,24 +740,33 @@ foreach ($cars as &$car) {
 <section class="section" id="autopark">
     <div class="autopark-grid">
         <?php foreach ($cars as $car): ?>
-    <div class="car-card">
-        <div class="car-image">
-            <!-- Выводим изображение машины -->
-            <img src="<?= htmlspecialchars($car['main_image']) ?>" alt="<?= htmlspecialchars($car['name']) ?>">
+  
+    <div 
+          class="car-card"
+          data-name="<?= htmlspecialchars($car['name']) ?>"
+          data-mileage="<?= htmlspecialchars($car['mileage']) ?>"
+          data-transmission="<?= htmlspecialchars($car['transmission']) ?>"
+          data-fuel="<?= htmlspecialchars($car['fuel']) ?>"
+          data-consumption="<?= htmlspecialchars($car['consumption']) ?>"
+          data-rental-price="<?= htmlspecialchars($car['rental_price']) ?>"
+          data-deposit-price="<?= htmlspecialchars($car['deposit_price']) ?>"
+          data-images='<?= htmlspecialchars($car['images'], ENT_QUOTES, 'UTF-8') ?>'
+        >
+            <div class="car-image">
+                <img src="<?= htmlspecialchars($car['main_image']) ?>" alt="<?= htmlspecialchars($car['name']) ?>">
+            </div>
+            <div class = "carfl">
+            <div class="car-title"><?= htmlspecialchars($car['name']) ?></div>
+            <div class="car-version"><?= htmlspecialchars($car['version']) ?></div>
+            </div>
+            <div class="car-price">от <?= htmlspecialchars($car['rental_price']) ?> злотых/неделя</div>
+            <div class="car-deposit">Залог: <?= htmlspecialchars($car['deposit_price']) ?> злотых</div>
+            <div class="car-description"><?= nl2br(htmlspecialchars($car['description'])) ?></div>
+            
+            <div class="car-actions">
+                <a href="/form/" class="btn-rent">Арендовать</a>
+            </div>
         </div>
-        <div class="car-title"><?= htmlspecialchars($car['name']) ?></div>
-        <div class="car-version"><?= htmlspecialchars($car['version']) ?></div>
-        <div class="car-price">от <?= htmlspecialchars($car['rental_price']) ?> злотых/неделя</div>
-        <div class="car-deposit">Залог: <?= htmlspecialchars($car['deposit_price']) ?> злотых</div>
-        <div class="car-description"><?= nl2br(htmlspecialchars($car['description'])) ?></div>
-        <div class="car-dates">
-            <div>Дата добавления: <?= htmlspecialchars($car['created_at']) ?></div>
-            <div>Последнее обновление: <?= htmlspecialchars($car['updated_at']) ?></div>
-        </div>
-        <div class="car-actions">
-            <button class="btn-rent">Арендовать</button>
-        </div>
-    </div>
 <?php endforeach; ?>
 
     </div>
@@ -906,6 +923,70 @@ foreach ($cars as &$car) {
       </div>
     </footer>
 
+
+     <!--модальное окно-->
+    <!-- Полупрозрачная подложка под модальным окном -->
+<div id="modalOverlay" style="
+  display:none;
+  position:fixed; 
+  top:0; left:0; 
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.7); 
+  z-index:9998;
+"></div>
+
+<!-- Само модальное окно -->
+<div id="carModal" style="
+  display:none;
+  position:fixed; 
+  top:50%; left:50%;
+  transform:translate(-50%, -50%);
+  background:#fff; 
+  color:#000; 
+  padding:20px; 
+  z-index:9999;
+  width:90%;
+  max-width:600px;
+  border-radius:8px;
+">
+  <!-- Кнопка закрыть -->
+  <button id="modalClose" style="float:right;">Закрыть</button>
+
+  <h2 id="modalCarName" style="margin-top:0;"></h2>
+
+  <p>Пробег: <span id="modalCarMileage"></span></p>
+  <p>Коробка: <span id="modalCarTransmission"></span></p>
+  <p>Топливо: <span id="modalCarFuel"></span></p>
+  <p>Расход: <span id="modalCarConsumption"></span></p>
+  <p>Цена аренды: <span id="modalCarPrice"></span> zł</p>
+  <p>Залог: <span id="modalCarDeposit"></span> zł</p>
+
+  <!-- Галерея картинок (простейшая) -->
+  <div style="position:relative; margin-top:20px;">
+    <img 
+      id="modalCarImage" 
+      src="" 
+      alt="Car image" 
+      style="width:100%; max-height:300px; object-fit:cover;"
+    >
+    <!-- Кнопки "Назад"/"Вперёд" -->
+    <button 
+      id="modalPrev" 
+      style="position:absolute; top:50%; left:0; transform:translateY(-50%);"
+    >
+      ←
+    </button>
+    <button 
+      id="modalNext" 
+      style="position:absolute; top:50%; right:0; transform:translateY(-50%);"
+    >
+      →
+    </button>
+  </div>
+</div>
+
+
+
     <script>
       /*************************************************************
       3. Intersection Observer (плавное появление секций)
@@ -953,9 +1034,117 @@ foreach ($cars as &$car) {
   const navLinks = document.querySelector('.nav-links');
   navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
 });
+
+    // Ищем элементы модалки
+  const modal = document.getElementById('carModal');
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalCloseBtn = document.getElementById('modalClose');
+
+  // Поля внутри модалки
+  const modalCarName         = document.getElementById('modalCarName');
+  const modalCarMileage      = document.getElementById('modalCarMileage');
+  const modalCarTransmission = document.getElementById('modalCarTransmission');
+  const modalCarFuel         = document.getElementById('modalCarFuel');
+  const modalCarConsumption  = document.getElementById('modalCarConsumption');
+  const modalCarPrice        = document.getElementById('modalCarPrice');
+  const modalCarDeposit      = document.getElementById('modalCarDeposit');
+
+  // Картинка и кнопки переключения
+  const modalCarImage = document.getElementById('modalCarImage');
+  const modalPrevBtn  = document.getElementById('modalPrev');
+  const modalNextBtn  = document.getElementById('modalNext');
+
+  // Массив с путями к изображениям текущей машины
+  let imagesArray = [];
+  let currentImageIndex = 0;
+
+  // Навешиваем обработчик на все карточки
+  document.querySelectorAll('.car-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      // Если не хотим, чтобы клик по кнопке "Арендовать" тоже открывал модалку,
+      // можем добавить проверку:
+      if (e.target.classList.contains('btn-rent')) {
+        // Тогда при клике на "Арендовать" просто выходим
+        return;
+      }
+
+      // Считываем данные из data-атрибутов
+      const name         = card.getAttribute('data-name');
+      const mileage      = card.getAttribute('data-mileage');
+      const transmission = card.getAttribute('data-transmission');
+      const fuel         = card.getAttribute('data-fuel');
+      const consumption  = card.getAttribute('data-consumption');
+      const rentalPrice  = card.getAttribute('data-rental-price');
+      const depositPrice = card.getAttribute('data-deposit-price');
+
+      // Считываем JSON-строку и парсим в массив
+      const imagesJson   = card.getAttribute('data-images') || '[]';
+      imagesArray        = JSON.parse(imagesJson);
+      currentImageIndex  = 0;
+
+      // Заполняем модалку
+      modalCarName.textContent         = name;
+      modalCarMileage.textContent      = mileage;
+      modalCarTransmission.textContent = transmission;
+      modalCarFuel.textContent         = fuel;
+      modalCarConsumption.textContent  = consumption;
+      modalCarPrice.textContent        = rentalPrice;
+      modalCarDeposit.textContent      = depositPrice;
+
+      // Показываем первую картинку (если есть)
+      updateModalImage();
+
+      // Показываем модалку и подложку
+      modal.style.display = 'block';
+      modalOverlay.style.display = 'block';
+    });
+  });
+
+  // Функция, которая обновляет картинку в модалке
+  function updateModalImage() {
+    if (imagesArray.length > 0) {
+      // Убедимся, что путь корректный. Если в БД хранится "uploads_img/xxx.jpg", 
+      // возможно, стоит подставлять "/" или полный путь.
+      modalCarImage.src = '/' + imagesArray[currentImageIndex].replace(/^\/+/, '');
+    } else {
+      modalCarImage.src = '/uploads_img/default-car.jpg';
+    }
+  }
+
+  // Кнопки переключения
+  modalPrevBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // чтобы клик не всплывал и не закрывал модалку
+    if (imagesArray.length > 0) {
+      currentImageIndex = (currentImageIndex - 1 + imagesArray.length) % imagesArray.length;
+      updateModalImage();
+    }
+  });
+
+  modalNextBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (imagesArray.length > 0) {
+      currentImageIndex = (currentImageIndex + 1) % imagesArray.length;
+      updateModalImage();
+    }
+  });
+
+  // Закрываем модалку
+  modalCloseBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+    modalOverlay.style.display = 'none';
+  });
+
+  // Клик по подложке тоже закрывает
+  modalOverlay.addEventListener('click', () => {
+    modal.style.display = 'none';
+    modalOverlay.style.display = 'none';
+  });
+
+
     </script>
+    
+
+
+    
   </body>
 </html>
-
-
-<!-- pause_Project -->
